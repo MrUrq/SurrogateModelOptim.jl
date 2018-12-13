@@ -1,0 +1,10 @@
+name = "SurrogateModelOptim"
+uuid = "dc3f66f6-feed-11e8-2006-85573fddfdbc"
+authors = ["Magnus Urquhart <magnus.urquhart@gmail.com>"]
+version = "0.1.0"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
