@@ -3,6 +3,11 @@ uuid = "dc3f66f6-feed-11e8-2006-85573fddfdbc"
 authors = ["Magnus Urquhart <magnus.urquhart@gmail.com>"]
 version = "0.1.0"
 
+[deps]
+BlackBoxOptim = "a134a8b2-14d6-55f6-9291-3336d3ab0209"
+LatinHypercubeSampling = "a5e1c1ea-c99a-51d3-a14d-a9a37257b02d"
+ScatteredInterpolation = "3f865c0f-6dca-5f4d-999b-29fe1e7e3c92"
+
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
