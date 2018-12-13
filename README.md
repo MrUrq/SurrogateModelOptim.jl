@@ -6,3 +6,4 @@
 [![Build Status](https://ci.appveyor.com/api/projects/status/github/MrUrq/SurrogateModelOptim.jl?svg=true)](https://ci.appveyor.com/project/MrUrq/SurrogateModelOptim-jl)
 [![Codecov](https://codecov.io/gh/MrUrq/SurrogateModelOptim.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/MrUrq/SurrogateModelOptim.jl)
 [![Coveralls](https://coveralls.io/repos/github/MrUrq/SurrogateModelOptim.jl/badge.svg?branch=master)](https://coveralls.io/github/MrUrq/SurrogateModelOptim.jl?branch=master)
+[![Project Status: Concept – Minimal or no implementation has been done yet, or the repository is only intended to be a limited example, demo, or proof-of-concept.](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
