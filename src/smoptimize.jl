@@ -1,33 +1,27 @@
 # function for creating optimised surrogate
-function smoptimize(f::Function; SearchRange, NumDimensions=false, kwargs...)
+function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options=options())
 
-    params = _setup_parameters(SearchRange,NumDimensions; kwargs...)
+    options = _update_options(search_range;options...)
 
     #Load the optional argument values
-    @Parameters.unpack NumStartSamples, TraceMode, SamplingPlanOptGens = params
+    @unpack num_start_samples, show_trace, sampling_plan_opt_gens = options
     
     #Create sampling plan
-    plan = _LHC_sampling_plan(SearchRange,NumDimensions,NumStartSamples,SamplingPlanOptGens)
+    plan = _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens)
 
-    #
+    #Evaluate the expensive function
+    samples = mapslices(f,plan,dims=1)
 
+    #Optimize the Radial Basis Function interpolation hyperparameters 
+    rbf_hypers = rbf_hypers_opt(samples, plan, options)
+
+    # #     #infill points
+    # #     surrogate_infill(sm,samples,points)
+    # # Loop over everything
 end
 
 
 
-
-     
-
-#     #evaluate f in the LHC points
-
-    
-#     #surrogate model creation
-#     smsetup(samples, points; kwargs...)
-
-#     #infill points
-#     surrogate_infill(sm,samples,points)
-
-# end
 
 # function for creating an optimised surrogate
 function smsetup(samples,points;)
@@ -38,7 +32,7 @@ end
 
 
 function testf(;kwargs...)
-    
+    return kwargs
 end
 
 
@@ -63,14 +57,17 @@ end
 
 
 
-# """
+# """    
+
+
+# end
 # Default parameters for all convenience methods that are exported to the end user.
 # See `OptRunController` for the description.
 # """
 # const DefaultParameters = ParamsDict(
-#     :NumDimensions  => :NotSpecified, # Dimension of problem to be optimized
-#     :SearchRange    => (-1.0, 1.0), # Default search range to use per dimension unless specified
-#     :SearchSpace    => false, # Search space can be directly specified and will then take precedence over NumDimensions and SearchRange.
+#     :num_dimensions  => :NotSpecified, # Dimension of problem to be optimized
+#     :search_range    => (-1.0, 1.0), # Default search range to use per dimension unless specified
+#     :SearchSpace    => false, # Search space can be directly specified and will then take precedence over num_dimensions and search_range.
 #     :FitnessScheme  => MinimizingFitnessScheme, # fitness scheme to be used
 #     :TargetFitness => nothing, # optimal (target) fitness, if known
 
@@ -87,7 +84,7 @@ end
 
 #     :NumRepetitions => 1,     # Number of repetitions to run for each optimizer for each problem
 
-#     :TraceMode      => :compact,  # Print tracing information during the optimization
+#     :show_trace      => :compact,  # Print tracing information during the optimization
 #     :TraceInterval  => 0.50,  # Minimum number of seconds between consecutive trace messages printed to STDOUT
 #     :SaveTrace      => false,
 #     :SaveFitnessTraceToCsv => false, # Save a csv file with information about the major fitness improvement events (only the first event in each fitness magnitude class is saved)
