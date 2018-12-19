@@ -9,6 +9,30 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "index.html#SurrogateModelOptim.RBFHypersResult",
+    "page": "Home",
+    "title": "SurrogateModelOptim.RBFHypersResult",
+    "category": "type",
+    "text": "RBFHypersResult(width::S,kernelFunc,scaling::U,fitness::Float64)\n\nDatastructure to store results from the optimisation of an RBF interpolation kernel\n\n\n\n\n\n"
+},
+
+{
+    "location": "index.html#SurrogateModelOptim.RMSErrorLOO-Tuple{Any,Any,Any}",
+    "page": "Home",
+    "title": "SurrogateModelOptim.RMSErrorLOO",
+    "category": "method",
+    "text": "function RMSErrorLOO(interp,samples::Array{Float64,2},plan;\ncond_max = 1/eps(Float64)/10000, rippa = false)\n\nCalculate the Leave-One-Out RMS error for a interpolation method.  rippa can be used to calculate the approximation of the LOO error  for Radial Basis Functions at a cost of 𝛰(3) (compared to 𝛰(4)). cond_max sets the maximum allowed condition number for matrix A used in the RBF calculation.\n\n\n\n\n\n"
+},
+
+{
+    "location": "index.html#SurrogateModelOptim._rippa-Tuple{Any,Any}",
+    "page": "Home",
+    "title": "SurrogateModelOptim._rippa",
+    "category": "method",
+    "text": "function _rippa(A,a)\n\nEstimate the Leave-One-Out (LOO) errors using rippas method. Complexity of 𝛰(3) compared to calculating the exact LOO at a cost of 𝛰(4). A is the RBF matrix and a is the weights of the RBF.\n\n\n\n\n\n"
+},
+
+{
     "location": "index.html#SurrogateModelOptim._scale-Union{Tuple{T}, Tuple{Array{T,1},Any,Any}} where T<:Real",
     "page": "Home",
     "title": "SurrogateModelOptim._scale",
@@ -33,11 +57,35 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "index.html#SurrogateModelOptim._setup_parameters",
+    "location": "index.html#SurrogateModelOptim._surrogate_interpolant-Union{Tuple{T}, Tuple{U}, Tuple{T,Any,Any,Any,Any,Any}} where T<:SurrogateModelOptim.RBFHypersResult{U,Float64} where U",
     "page": "Home",
-    "title": "SurrogateModelOptim._setup_parameters",
-    "category": "function",
-    "text": "_setup_parameters(SearchRange, NumDimensions=false; kwargs...)\n\nInternal function of SurrogateModelOptim to handle the interface which constrains  the input combinations the user can use. \n\n\n\n\n\n"
+    "title": "SurrogateModelOptim._surrogate_interpolant",
+    "category": "method",
+    "text": "_surrogate_interpolant(optres::T,points,observations,estimationpoints,\noldMin,oldMax) where T <: RBFoptim_v1.HypersResult{U,Float64} where U\n\nEvaluate an optimised interpolant at locations estimationpoints.\n\n\n\n\n\n"
+},
+
+{
+    "location": "index.html#SurrogateModelOptim._surrogate_interpolant-Union{Tuple{T}, Tuple{U}, Tuple{T,Any,Any,Any}} where T<:SurrogateModelOptim.RBFHypersResult{U,Float64} where U",
+    "page": "Home",
+    "title": "SurrogateModelOptim._surrogate_interpolant",
+    "category": "method",
+    "text": "_surrogate_interpolant(optres::T,plan,samples,estimationpoints,\noldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U\n\nEvaluate an optimised interpolant at locations estimationpoints.\n\n\n\n\n\n"
+},
+
+{
+    "location": "index.html#SurrogateModelOptim._update_options-Tuple{Any}",
+    "page": "Home",
+    "title": "SurrogateModelOptim._update_options",
+    "category": "method",
+    "text": "_update_options(search_range;kwargs...)\n\nInternal function of SurrogateModelOptim to update the options to suitable default values. \n\n\n\n\n\n"
+},
+
+{
+    "location": "index.html#SurrogateModelOptim.interp_obj-Tuple{Array{Float64,1},Any,Any,Array{Float64,2}}",
+    "page": "Home",
+    "title": "SurrogateModelOptim.interp_obj",
+    "category": "method",
+    "text": "function interp_obj(inpt::Vector{Float64}, kerns, samples::Array{Float64,2},\nplan::Array{Float64,2}; rippa::Bool = false, scale::Bool = false)\n\nObjective function for optimisation of interpolation kernel function and width.\n\n\n\n\n\n"
 },
 
 {
