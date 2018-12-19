@@ -1,17 +1,3 @@
-
-"""
-    RBFHypersResult(width::S,kernelFunc,scaling::U,fitness::Float64)
-
-Datastructure to store results from the optimisation of an RBF interpolation kernel
-"""
-struct RBFHypersResult{T,U}
-    width::T
-    kernelFunc
-    scaling::U
-    fitness::Float64
-end
-
-
 """
     function interp_obj(inpt::Vector{Float64}, kerns, samples::Array{Float64,2},
     plan::Array{Float64,2}; rippa::Bool = false, scale::Bool = false)
@@ -76,7 +62,6 @@ function _scaled_interp_fixK_fixW_obj(inpt::Vector{Float64}, kerns, samples,
     for i = 1:size(plan,1)
         scaled_plan[i,:] = _scale(plan[i,:],-1.0*z[i],1.0*z[i])
     end
-    
 
     # Choose interpolation kernel function based on floating point
     kernind = round.(Int,_scale(y,1.0,float(length(kerns)),oldMin=0,oldMax=1))
@@ -147,7 +132,7 @@ end
 
 
 
-function rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
+function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
     
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             max_rbf_width, max_scale, cond_max, rbf_dist_metric,
@@ -185,10 +170,7 @@ function rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, optio
     end
     
     # run the optimisation
-    return _RBF_hypers_opt(samples,plan,kerns,rbf_opt_gens,sr,optHypRes;
-    rippa = rippa, variable_kernel_width = variable_kernel_width, 
-    variable_dim_scaling = variable_dim_scaling, rbf_opt_method = rbf_opt_method,
-    cond_max = cond_max, rbf_dist_metric = rbf_dist_metric) 
+    return _RBF_hypers_opt(samples,plan,kerns,rbf_opt_gens,sr,optHypRes,options) 
 end
 
 
@@ -229,53 +211,47 @@ end
 
 
 
-function _RBF_hypers_opt(samples::Array{Float64,2}, 
-        plan::Array{Float64,2},kerns,rbf_opt_gens,sr,optHypRes;
-        rippa = false, variable_kernel_width = true,
-        variable_dim_scaling = true, rbf_opt_method = :de_rand_1_bin_radiuslimited,
-        cond_max = 1e5, rbf_dist_metric = Distances.Euclidean())
 
-    # Each row of samples is treated like a separate function where each column
-    # is the number of samples
-    nFuncs, nObs = size(samples)  
+
+function _RBF_hypers_opt(   samples::Array{Float64,2},plan::Array{Float64,2},
+                            kerns,rbf_opt_gens,sr,optHypRes,options)
+
+    @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
+    max_rbf_width, max_scale, cond_max, rbf_dist_metric = options
+
+    samples = vec(samples)
+        
+    res = bboptimize(x -> interp_obj(x,kerns,samples,plan,rippa=rippa,
+            variable_kernel_width=variable_kernel_width,
+            variable_dim_scaling=variable_dim_scaling,cond_max=cond_max); 
+            Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
+            TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
+            TargetFitness = 1e-5, FitnessTolerance = 1e-6);
     
-    # Optimise each function (each row of samples)
-    for i = 1:nFuncs        
-        samples = samples[i,:]
+    bestres = res.archive_output.best_candidate;
         
-        
-        res = bboptimize(x -> interp_obj(x,kerns,samples,plan,rippa=rippa,
-                variable_kernel_width=variable_kernel_width,
-                variable_dim_scaling=variable_dim_scaling,cond_max=cond_max); 
-                Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
-                TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
-                TargetFitness = 1e-5, FitnessTolerance = 1e-6);
-        
-        bestres = res.archive_output.best_candidate;
-            
-        # Order the results in an Array of RBFHypersResult
-        kern_hyp_res = RBFHypersResult(res,samples,kerns,
-        variable_kernel_width,variable_dim_scaling)
+    # Order the results in an Array of RBFHypersResult
+    kern_hyp_res = RBFHypersResult(res,samples,kerns,
+    variable_kernel_width,variable_dim_scaling)
+    
 
-        optHypRes[i] = deepcopy(kern_hyp_res)
-    end
-
-    return optHypRes
+    return kern_hyp_res
 end
 
 
 
+
 """
-    evalInterpolant(optres::T,points,samples,estimationpoints,
+    _surrogate_interpolant(optres::T,plan,samples,estimationpoints,
     oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
 
 Evaluate an optimised interpolant at locations estimationpoints.
 """
-function evalInterpolant(optres::T,points,samples,estimationpoints,
-    oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
+function _surrogate_interpolant(optres::T,plan,samples,estimationpoints,
+                        ) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
     
     #Interpolation object based on the optimisation results
-    itp = interpolate(optres.kernelFunc, points, samples)
+    itp = interpolate(optres.kernelFunc, plan, samples)
 
     #evaluate the interpolation object
     ests = similar(estimationpoints[1:1,:])
@@ -287,15 +263,13 @@ function evalInterpolant(optres::T,points,samples,estimationpoints,
 end
 
 
-function evalInterpolant(optres::T,points,samples,estimationpoints,
-    oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
+function _surrogate_interpolant(optres::T,samples,plan,estimationpoints
+                        ) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
     
-    scaledPoints = similar(points)
+    scaledPoints = similar(plan)
     for i = 1:size(scaledPoints,1)
-        scaledPoints[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
-        oldMin = oldMin[i], oldMax = oldMax[i])
+        scaledPoints[i,:] = _scale(plan[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i])
     end
-
     
     #Interpolation object based on the optimisation results
     itp = interpolate(optres.kernelFunc, scaledPoints, samples)
@@ -304,8 +278,7 @@ function evalInterpolant(optres::T,points,samples,estimationpoints,
     #evaluate the interpolation object
     estimationpointsScaled = similar(estimationpoints)
     for i = 1:size(estimationpointsScaled,1)
-        estimationpointsScaled[i,:] = _scale(estimationpoints[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
-        oldMin = oldMin[i], oldMax = oldMax[i])        
+        estimationpointsScaled[i,:] = _scale(estimationpoints[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i])        
     end
 
 
@@ -320,7 +293,103 @@ end
 
 
 
-using LinearAlgebra
+
+"""
+    _surrogate_interpolant(optres::T,points,observations,estimationpoints,
+    oldMin,oldMax) where T <: RBFoptim_v1.HypersResult{U,Float64} where U
+
+Evaluate an optimised interpolant at locations estimationpoints.
+"""
+function _surrogate_interpolant(optres::T,points,observations,estimationpoints,
+    oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
+    
+    #Interpolation object based on the optimisation results
+    itp = interpolate(optres.kernelFunc, points, observations)
+
+    #evaluate the interpolation object
+    ests = similar(estimationpoints[1:1,:])
+    for i = 1:size(estimationpoints,2)
+        ests[i] = ScatteredInterpolation.evaluate(itp, estimationpoints[:,i])[1]
+    end
+
+    return ests
+end
+
+
+function _surrogate_interpolant(optres::T,points,observations,estimationpoints,
+    oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
+    
+    scaledPoints = similar(points)
+    for i = 1:size(scaledPoints,1)
+        scaledPoints[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
+        oldMin = oldMin[i], oldMax = oldMax[i])
+    end
+
+    
+    #Interpolation object based on the optimisation results
+    itp = interpolate(optres.kernelFunc, scaledPoints, observations)
+
+
+    #evaluate the interpolation object
+    estimationpointsScaled = similar(estimationpoints)
+    for i = 1:size(estimationpointsScaled,1)
+        estimationpointsScaled[i,:] = _scale(estimationpoints[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
+        oldMin = oldMin[i], oldMax = oldMax[i])        
+    end
+
+
+    ests = vec(similar(estimationpoints[1:1,:]))
+    for i = 1:size(estimationpoints,2)
+        ests[i] = ScatteredInterpolation.evaluate(itp, estimationpointsScaled[:,i])[1]
+    end
+
+    return ests
+end
+
+
+
+#Returns anonymous function 
+function surrogate_model(samples, plan, options)
+    
+    @unpack num_interpolants = options
+
+    if num_interpolants == 1
+        optres = _rbf_hypers_opt(samples, plan, options)
+
+        estimationpoints->_surrogate_interpolant(
+                                                optres,
+                                                plan,
+                                                samples',
+                                                estimationpoints,
+                                                minimum(plan,dims=2),
+                                                maximum(plan,dims=2)
+                                                )
+    else
+        _p_rbf_opt = function (x)
+            _rbf_hypers_opt(samples, plan, options)
+        end
+        optres = pmap(_p_rbf_opt,1:num_interpolants')
+        
+        return function (estimationpoints)
+            res = Array{Float64,2}(undef,num_interpolants,size(estimationpoints,2))
+  
+            for i = 1:length(optres)
+                res[i,:]= _surrogate_interpolant(
+                                                optres[i],
+                                                plan,
+                                                samples',
+                                                estimationpoints,
+                                                minimum(plan,dims=2),
+                                                maximum(plan,dims=2)
+                                                )
+            end
+            return SurrogateEstimate(res)
+        end
+    end
+end
+
+
+
 
 """
     function _rippa(A,a)
@@ -342,10 +411,8 @@ function _rippa(A, a)
     return E
 end
 
-
-
 """
-    function RMSErrorLOO(interp,samples::Array{Float64,1},plan;
+    function RMSErrorLOO(interp,samples::Array{Float64,2},plan;
     cond_max = 1/eps(Float64)/10000, rippa = false)
 
 Calculate the Leave-One-Out RMS error for a interpolation method. 
@@ -370,40 +437,6 @@ function RMSErrorLOO(interp, samples, plan;
     RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan;
     cond_max=cond_max, rippa=rippa, rbf_dist_metric = rbf_dist_metric)
 end
-
-"""
-    function ErrorLOO(interp,samples,plan,errorType;
-    cond_max::Float64 = 1/eps(Float64)/10000, rippa::Bool = false)
-
-Calculate the Leave-One-Out RMS error for a interpolation method. 
-`rippa` can be used to calculate the approximation of the LOO error 
-for Radial Basis Functions at a cost of 𝛰(3)
-(compared to 𝛰(4)). `cond_max` sets the maximum allowed condition number for
-matrix `A` used in the RBF calculation.
-"""
-function ErrorLOO(interp, samples, plan, errorType;
- cond_max::Float64=1e6, rippa::Bool=false, rbf_dist_metric = Euclidean())
-
-    #initiate arrays
-    N = length(samples)
-    E = Array{Float64}(undef,N)       #Error
-    A = zeros(Float64, N, N)    #RBF matrix A
-    ests = Array{Float64}(undef,N)    #Function estimate based on LOO
-    LOOinds = Array{Int}(undef,N - 1, N)
-    for i = 1:N
-        LOOinds[:,i] = filter(x -> x != i, 1:N) # Get the leave one out sub indices
-    end
-
-    @assert (errorType == "RMSE") | (errorType == "MAE")
-    if errorType == "RMSE"
-        RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan;
-         cond_max=cond_max, rippa=rippa, rbf_dist_metric = rbf_dist_metric)
-    else
-        MAEErrorLOO!(E, A, ests, LOOinds, interp, samples, plan;
-         cond_max=cond_max, rippa=rippa, rbf_dist_metric = rbf_dist_metric)
-    end
-end
-
 
 
 function RMSErrorLOO!(E, A, ests, LOOinds, interp::U,
@@ -437,7 +470,7 @@ function RMSErrorLOO!(E, A, ests, LOOinds, interp::U,
         end
     end
 
- #check the conditioning of matrix A for RBFs
+    #check the conditioning of matrix A for RBFs
     isrbf = typeof(interp) <: ScatteredInterpolation.RadialBasisFunction
 
     if isrbf && (cond(A) > cond_max)

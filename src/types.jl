@@ -14,8 +14,22 @@
     max_rbf_width::Float64 = 1000.0
     max_scale::Float64 = 10.0
     min_scale::Float64 = 1e-4
+    num_interpolants::Int = 1
 end
 
 
+"""
+    RBFHypersResult(width::S,kernelFunc,scaling::U,fitness::Float64)
 
-            
+Datastructure to store results from the optimisation of an RBF interpolation kernel
+"""
+struct RBFHypersResult{T,U}
+    width::T
+    kernelFunc
+    scaling::U
+    fitness::Float64
+end
+
+struct SurrogateEstimate{T}
+    sm_estimate::T
+end

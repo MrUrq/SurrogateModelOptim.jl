@@ -1,20 +1,29 @@
 module SurrogateModelOptim
 
 export  smoptimize,
-        sm_hypers_opt
+        rosenbrock2d
+
+function rosenbrock2d(x)
+    return (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
+end
 
 using LatinHypercubeSampling: LHCoptim
-using ScatteredInterpolation: interpolate
+using ScatteredInterpolation
 using BlackBoxOptim: bboptimize
 using Parameters: reconstruct, type2dict, @with_kw, @unpack
 using Distances
 using Statistics
+using LinearAlgebra
+using Distributed
+import Base.minimum
 
-include("default_parameters.jl")
+
+include("types.jl")
+include("interface.jl")
 include("rbf_hypers_opt.jl")
 include("sample_infill.jl")
 include("scaling.jl")
-include("setup.jl")
 include("smoptimize.jl")
+
 
 end # module
