@@ -1,3 +1,5 @@
+
+
 # function for creating optimised surrogate
 function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options=options())
 
@@ -13,25 +15,12 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
     samples = mapslices(f,plan,dims=1)
 
     #Create the optimized Radial Basis Function interpolant 
-    rbf_hypers = surrogate_model(samples, plan, options)
+    sm_interpolant = surrogate_model(samples, plan, options)
     
+    #Points to add to the sampling plan to improve the interpolant
+    infillpoints = model_infill(plan,samples,sm_interpolant,options)
     
-
-    # #     #infill points
-    # #     surrogate_infill(sm,samples,points)
-    # # Loop over everything
 end
-
-
-
-
-# function for creating an optimised surrogate
-function smsetup(samples,points;)
-    # 
-end
-
-
-
 
 
 
