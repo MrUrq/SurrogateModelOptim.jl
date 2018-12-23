@@ -11,15 +11,47 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
     #Create sampling plan
     plan = _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens)
 
+    println("Iteration ", 1)
+    println("Evaluating function")
     #Evaluate the expensive function
     samples = mapslices(f,plan,dims=1)
+    @show minimum(samples)
 
-    #Create the optimized Radial Basis Function interpolant 
     sm_interpolant = surrogate_model(samples, plan, options)
-    
-    #Points to add to the sampling plan to improve the interpolant
-    infillpoints = model_infill(plan,samples,sm_interpolant,options)
-    
+        
+    ###################################### Bad way of doing this, just proof of concept
+    for i = 2:10
+
+        println("Creating surrogate model")
+        #Create the optimized Radial Basis Function interpolant 
+        sm_interpolant = surrogate_model(samples, plan, options)
+        
+        println("Finding infill points")
+        #Points to add to the sampling plan to improve the interpolant
+        plan = model_infill(plan,samples,sm_interpolant,options)
+        plan = unique(plan,dims=2)
+
+        println("")
+        println("Iteration ", i)
+        println("Evaluating function")
+        #Evaluate the expensive function
+        samples = mapslices(f,plan,dims=1)
+        @show minimum(samples)
+    end
+
+    res = bboptimize(f;
+             Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, MaxFuncEvals=length(samples),
+             TraceMode=:silent);
+            @show best_de_solution = f(res.archive_output.best_candidate)
+
+    res = bboptimize(f;
+            Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, TargetFitness=minimum(samples),
+            TraceMode=:silent, );
+           @show equal_de_solution = res.f_calls
+
+            println("Best de = ", best_de_solution, ". Best surrogate = ", minimum(samples), ". Iterations of surrogate ", length(samples), ". Iterations to get equally good de solution = ", equal_de_solution, ". Performance inrease = ", equal_de_solution/length(samples))
+
+    return samples, plan, sm_interpolant, best_de_solution, minimum(samples), res
 end
 
 
