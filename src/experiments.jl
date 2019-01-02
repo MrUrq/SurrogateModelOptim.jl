@@ -1,6 +1,8 @@
 using PGFPlotsX
 using Colors
 using ColorSchemes
+using Random
+using SurrogateModelOptim
 using ColorBrewer
 using Distances
 using ScatteredInterpolation
@@ -37,4 +39,7 @@ function funcplotX(fun,xmin,xmax,ymin,ymax)
     return ax
 end
 
+
 ax = funcplotX(rosenbrock2d,-5,5,-5,5)
+
+asd = smoptimize(x->(styblinskiTang(x)+4*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],SurrogateModelOptim.options(num_interpolants=20, variable_kernel_width = true, num_start_samples=20, sampling_plan_opt_gens=100000, rbf_opt_gens=10000));

@@ -2,6 +2,8 @@ module SurrogateModelOptim
 
 export  smoptimize,
         rosenbrock2d,
+        rotatedHyperElipsoid,
+        styblinskiTang,
         minimum,
         maximum,
         std,
@@ -12,6 +14,29 @@ export  smoptimize,
 function rosenbrock2d(x)
     return (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
 end
+function rotatedHyperElipsoid(x)
+    out = 0.0
+    xy = [x[1],x[2]]
+    for i = 1:2
+        inner = 0.0
+        for j = 1:i
+            inner = inner + xy[j]^2
+        end
+        out += inner
+    end
+    return out
+end
+function styblinskiTang(x)
+    out = 0.0    
+    xy = [x[1],x[2]]
+    for i = 1:2
+        out += xy[i]^4 - 16*xy[i]^2 + 5*xy[i]
+    end
+    out *= 0.5
+    return out
+end
+
+
 
 using LatinHypercubeSampling: LHCoptim
 using ScatteredInterpolation
@@ -41,6 +66,7 @@ include("smoptimize.jl")
 
 #TODO
 #####Tracing
+#####Smoothing - Optimize the smoothness level 
 #####Result type containing
         # Original samples
         # Infill points
