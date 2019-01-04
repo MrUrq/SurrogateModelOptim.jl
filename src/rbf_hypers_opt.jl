@@ -299,38 +299,24 @@ function surrogate_model(samples, plan, options)
     
     @unpack num_interpolants = options
 
-    if num_interpolants == 1
-        optres = _rbf_hypers_opt(samples, plan, options)
+    _p_rbf_opt = (x)->_rbf_hypers_opt(samples, plan, options)
+    
+    optres = pmap(_p_rbf_opt,1:num_interpolants)
+    
+    return function (estimationpoints)        
+        res = Array{Float64,2}(undef,num_interpolants,1)
 
-        estimationpoints->_surrogate_interpolant(
-                                                optres,
-                                                plan,
-                                                samples',
-                                                estimationpoints,
-                                                minimum(plan,dims=2),
-                                                maximum(plan,dims=2)
-                                                )
-    else
-        _p_rbf_opt = function (x)
-            _rbf_hypers_opt(samples, plan, options)
+        for i = 1:length(optres)
+            res[i,:]= _surrogate_interpolant(
+                                            optres[i],
+                                            plan,
+                                            samples',
+                                            estimationpoints,
+                                            minimum(plan,dims=2),
+                                            maximum(plan,dims=2)
+                                            )
         end
-        optres = pmap(_p_rbf_opt,1:num_interpolants')
-        
-        return function (estimationpoints)
-            res = Array{Float64,2}(undef,num_interpolants,size(estimationpoints,2))
-  
-            for i = 1:length(optres)
-                res[i,:]= _surrogate_interpolant(
-                                                optres[i],
-                                                plan,
-                                                samples',
-                                                estimationpoints,
-                                                minimum(plan,dims=2),
-                                                maximum(plan,dims=2)
-                                                )
-            end
-            return SurrogateEstimate(res)
-        end
+        return SurrogateEstimate(res)        
     end
 end
 
