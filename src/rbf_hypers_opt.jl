@@ -36,7 +36,7 @@ function _interp_fixK_fixW_obj(inpt::Vector{Float64}, kerns, samples,
     y = inpt[2]
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1,length(kerns),oldMin=0,oldMax=1))
+    kernind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
     kern = kerns[kernind](x)
 
     try
@@ -64,7 +64,7 @@ function _scaled_interp_fixK_fixW_obj(inpt::Vector{Float64}, kerns, samples,
     end
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),oldMin=0,oldMax=1))
+    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
     kern = kerns[kernind](x)
 
     try
@@ -83,7 +83,7 @@ function _interp_varK_varW_obj(inpt::Vector{Float64}, kerns, samples,
     y = inpt[size(plan,2)+1:size(plan,2)+size(plan,2)] #Kernel function
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),oldMin=0,oldMax=1))
+    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
     kern = Vector{ScatteredInterpolation.RadialBasisFunction}(undef,size(plan,2))
     for i = 1:size(plan,2)
         kern[i] = kerns[kernind[i]](x[i])
@@ -116,7 +116,7 @@ function _scaled_interp_varK_varW_obj(inpt::Vector{Float64}, kerns, samples,
     
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),oldMin=0,oldMax=1))
+    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
     kern = Vector{ScatteredInterpolation.RadialBasisFunction}(undef,size(plan,2))
     for i = 1:size(plan,2)
         kern[i] = kerns[kernind[i]](x[i])
@@ -184,7 +184,7 @@ function RBFHypersResult(res,samples,kerns,variable_kernel_width::Bool,variable_
         y = bestres[nObs+1:nObs+nObs] 
         variable_dim_scaling ? axisScale = bestres[nObs+nObs+1:end] : axisScale = 1.0
 
-        kernind = round.(Int,_scale(y,1,length(kerns),oldMin=0,oldMax=1))
+        kernind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
         kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,nObs)
         for j = 1:nObs
             kern[j] = kerns[kernind[j]](x[j])
@@ -194,7 +194,7 @@ function RBFHypersResult(res,samples,kerns,variable_kernel_width::Bool,variable_
         y = bestres[2]
         variable_dim_scaling ? axisScale = bestres[3:end] : axisScale = 1.0
 
-        kernind = round.(Int,_scale(y,1,length(kerns),oldMin=0,oldMax=1))
+        kernind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
         kern = kerns[kernind](x)
     end
 
@@ -242,12 +242,12 @@ end
 
 """
     _surrogate_interpolant(optres::T,points,observations,estimationpoints,
-    oldMin,oldMax) where T <: RBFoptim_v1.HypersResult{U,Float64} where U
+    old_min,old_max) where T <: RBFoptim_v1.HypersResult{U,Float64} where U
 
 Evaluate an optimised interpolant at locations estimationpoints.
 """
 function _surrogate_interpolant(optres::T,points,observations,estimationpoints,
-    oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
+    old_min,old_max) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
     
     #Interpolation object based on the optimisation results
     itp = interpolate(optres.kernelFunc, points, observations)
@@ -263,12 +263,12 @@ end
 
 
 function _surrogate_interpolant(optres::T,points,observations,estimationpoints,
-    oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
+    old_min,old_max) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
     
     scaledPoints = similar(points)
     for i = 1:size(scaledPoints,1)
         scaledPoints[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
-        oldMin = oldMin[i], oldMax = oldMax[i])
+        old_min = old_min[i], old_max = old_max[i])
     end
 
     
@@ -280,7 +280,7 @@ function _surrogate_interpolant(optres::T,points,observations,estimationpoints,
     estimationpointsScaled = similar(estimationpoints)
     for i = 1:size(estimationpointsScaled,1)
         estimationpointsScaled[i,:] = _scale(estimationpoints[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
-        oldMin = oldMin[i], oldMax = oldMax[i])        
+        old_min = old_min[i], old_max = old_max[i])        
     end
 
 
