@@ -36,8 +36,8 @@ function _interp_fixK_fixW_obj(inpt::Vector{Float64}, kerns, samples,
     y = inpt[2]
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
-    kern = kerns[kernind](x)
+    kern_ind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
+    kern = kerns[kern_ind](x)
 
     try
         E = RMSErrorLOO(kern, samples, plan; rippa = rippa,
@@ -64,8 +64,8 @@ function _scaled_interp_fixK_fixW_obj(inpt::Vector{Float64}, kerns, samples,
     end
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
-    kern = kerns[kernind](x)
+    kern_ind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
+    kern = kerns[kern_ind](x)
 
     try
         E = RMSErrorLOO(kern, samples, scaled_plan; rippa = rippa,
@@ -83,10 +83,10 @@ function _interp_varK_varW_obj(inpt::Vector{Float64}, kerns, samples,
     y = inpt[size(plan,2)+1:size(plan,2)+size(plan,2)] #Kernel function
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
+    kern_ind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
     kern = Vector{ScatteredInterpolation.RadialBasisFunction}(undef,size(plan,2))
     for i = 1:size(plan,2)
-        kern[i] = kerns[kernind[i]](x[i])
+        kern[i] = kerns[kern_ind[i]](x[i])
     end
 
     try
@@ -116,10 +116,10 @@ function _scaled_interp_varK_varW_obj(inpt::Vector{Float64}, kerns, samples,
     
 
     # Choose interpolation kernel function based on floating point
-    kernind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
+    kern_ind = round.(Int,_scale(y,1.0,float(length(kerns)),old_min=0,old_max=1))
     kern = Vector{ScatteredInterpolation.RadialBasisFunction}(undef,size(plan,2))
     for i = 1:size(plan,2)
-        kern[i] = kerns[kernind[i]](x[i])
+        kern[i] = kerns[kern_ind[i]](x[i])
     end
 
     try
@@ -132,13 +132,14 @@ end
 
 
 
+
 function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
     
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             max_rbf_width, max_scale, cond_max, rbf_dist_metric,
             rbf_opt_gens, kerns = options
 
-    n_dims, n_samples = size(samples)
+    n_dims, n_samples = size(plan)
 
     # optimise hypers using the same kernel and width for each point
     if variable_kernel_width
@@ -147,9 +148,7 @@ function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, opti
         sr = [repeat([(1e-4, max_rbf_width)],n_samples); repeat([(0.0, 1.0)],n_samples)]
         if variable_dim_scaling
             sr = [sr; repeat([(1e-4, max_scale)],n_dims)]
-            optHypRes = Array{RBFHypersResult{Array{Float64,1},Array{Float64,1}},1}(undef,nFuncs)
         else
-            optHypRes = Array{RBFHypersResult{Array{Float64,1},Float64},1}(undef,nFuncs)            
         end    
 
     # optimise hypers using different kernels and different widths
@@ -159,9 +158,7 @@ function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, opti
         sr = [(1e-4, max_rbf_width), (0.0, 1.0)]
         if variable_dim_scaling 
             sr = [sr; repeat([(1e-4, max_scale)],n_dims)]
-            optHypRes = Array{RBFHypersResult{Float64,Array{Float64,1}},1}(undef,nFuncs)
         else
-            optHypRes = Array{RBFHypersResult{Float64,Float64},1}(undef,nFuncs)
         end
     
     else
@@ -169,7 +166,7 @@ function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, opti
     end
     
     # run the optimisation
-    return _RBF_hypers_opt(samples,plan,kerns,rbf_opt_gens,sr,optHypRes,options) 
+    return _RBF_hypers_opt(samples,plan,kerns,rbf_opt_gens,sr,options) 
 end
 
 
@@ -183,18 +180,18 @@ function RBFHypersResult(res,samples,kerns,variable_kernel_width::Bool,variable_
         y = bestres[n_samples+1:n_samples+n_samples] 
         variable_dim_scaling ? axisScale = bestres[n_samples+n_samples+1:end] : axisScale = 1.0
 
-        kernind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
+        kern_ind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
         kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,n_samples)
         for j = 1:n_samples
-            kern[j] = kerns[kernind[j]](x[j])
+            kern[j] = kerns[kern_ind[j]](x[j])
         end
     elseif !variable_kernel_width
         x = bestres[1]
         y = bestres[2]
         variable_dim_scaling ? axisScale = bestres[3:end] : axisScale = 1.0
 
-        kernind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
-        kern = kerns[kernind](x)
+        kern_ind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
+        kern = kerns[kern_ind](x)
     end
 
 
@@ -213,7 +210,7 @@ end
 
 
 function _RBF_hypers_opt(   samples::Array{Float64,2},plan::Array{Float64,2},
-                            kerns,rbf_opt_gens,sr,optHypRes,options)
+                            kerns,rbf_opt_gens,sr,options)
 
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
     max_rbf_width, max_scale, cond_max, rbf_dist_metric = options
