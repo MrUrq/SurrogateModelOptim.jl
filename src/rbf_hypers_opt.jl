@@ -79,7 +79,7 @@ function RBFHypers(res,samples,kerns,variable_kernel_width::Bool,variable_dim_sc
     if variable_kernel_width
         x = bestres[1:n_samples]     
         y = bestres[n_samples+1:n_samples+n_samples] 
-        variable_dim_scaling ? axisScale = bestres[n_samples+n_samples+1:end] : axisScale = 1.0
+        variable_dim_scaling ? axisScale = bestres[n_samples+n_samples+1:end] : axisScale = false
 
         kern_ind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
         kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,n_samples)
@@ -89,7 +89,7 @@ function RBFHypers(res,samples,kerns,variable_kernel_width::Bool,variable_dim_sc
     elseif !variable_kernel_width
         x = bestres[1]
         y = bestres[2]
-        variable_dim_scaling ? axisScale = bestres[3:end] : axisScale = 1.0
+        variable_dim_scaling ? axisScale = bestres[3:end] : axisScale = false
 
         kern_ind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
         kern = kerns[kern_ind](x)
@@ -97,10 +97,9 @@ function RBFHypers(res,samples,kerns,variable_kernel_width::Bool,variable_dim_sc
 
 
     kern_hyp_res = RBFHypers(
-        x,                                                          #width
         kern,                                                       #kernelFunc
         axisScale,                                                  #scaling
-        res.archive_output.best_fitness,                            #fitness
+        false                                                      #fitness
         )
 
     return kern_hyp_res
@@ -137,40 +136,20 @@ end
 
 
 
-"""
-    _surrogate_interpolant(optres::T,points,observations,estimation_point,
-    old_min,old_max) where T <: RBFoptim_v1.HypersResult{U,Float64} where U
 
-Evaluate an optimised interpolant at locations estimation_point.
-"""
-function _surrogate_interpolant(optres::T,points,observations,
-            estimation_point) where T <: SurrogateModelOptim.RBFHypers{U,Float64} where U
+
+function _surrogate_interpolant(optres, points, observations, estimation_point)
     
+    #Preprocess the points based on the settings used.
+    preprocessed_point = preprocess_point(points,optres,base_scale=points)
+    preprocessed_est_point = preprocess_point(estimation_point,optres,base_scale=points)
+
+
     #Interpolation object based on the optimisation results
-    itp = interpolate(optres.kernelFunc, points, observations)
-
-    #evaluate the interpolation object
-    estimation = ScatteredInterpolation.evaluate(itp, estimation_point)[1]
-
-
-    return estimation
-end
-
-function _surrogate_interpolant(optres::T,points,observations,
-            estimation_point) where T <: SurrogateModelOptim.RBFHypers{U,Array{Float64,1}} where U
+    itp = interpolate(optres.kernelFunc, preprocessed_point, observations)
     
-    
-    scaled_points = point_scale(points,optres,base_scale=points)
-    
-    #Interpolation object based on the optimisation results
-    itp = interpolate(optres.kernelFunc, scaled_points, observations)
-
-
-    #evaluate the interpolation object
-    scaled_estimation_point = point_scale(estimation_point,optres,base_scale=points)
-    
-
-    estimation = ScatteredInterpolation.evaluate(itp, scaled_estimation_point)[1]
+    #Evaluate the interpolation object
+    estimation = ScatteredInterpolation.evaluate(itp, preprocessed_est_point)[1]
 
     return estimation
 end

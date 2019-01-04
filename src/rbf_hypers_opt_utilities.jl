@@ -100,20 +100,6 @@ function _scaled_interp_varK_varW_obj(inpt::Vector{Float64}, kerns, samples,
 end
 
 
-function point_scale(points,optres;base_scale::Array{Float64,2})
-
-    old_min = minimum(base_scale,dims=2)
-    old_max = maximum(base_scale,dims=2)
-
-    scaled_points = similar(points)
-    for i = 1:size(scaled_points,1)
-        scaled_points[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
-        old_min = old_min[i], old_max = old_max[i])
-    end
-    return scaled_points
-end
-
-
 
 """
     function _rippa(A,a)

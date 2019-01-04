@@ -26,16 +26,11 @@ end
 Datastructure to store results from the optimisation of an RBF interpolation kernel
 """
 struct RBFHypers{T,U}
-    width::T
     kernelFunc
-    scaling::U
-    fitness::Float64
+    scaling::T
+    smooth::U
 end
-# struct RBFHypers{U,V}
-#     kernelFunc
-#     scaling::U
-#     smooth::V
-# end
+
 
 struct SurrogateEstimate{T}
     sm_estimate::T
