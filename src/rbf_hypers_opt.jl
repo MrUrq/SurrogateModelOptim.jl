@@ -138,16 +138,15 @@ function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, opti
             max_rbf_width, max_scale, cond_max, rbf_dist_metric,
             rbf_opt_gens, kerns = options
 
-    nFuncs, nObs = size(samples)
-    nDims = size(plan,1)
+    n_dims, n_samples = size(samples)
 
     # optimise hypers using the same kernel and width for each point
     if variable_kernel_width
 
         # initiate exploration space for optimisation
-        sr = [repeat([(1e-4, max_rbf_width)],nObs); repeat([(0.0, 1.0)],nObs)]
+        sr = [repeat([(1e-4, max_rbf_width)],n_samples); repeat([(0.0, 1.0)],n_samples)]
         if variable_dim_scaling
-            sr = [sr; repeat([(1e-4, max_scale)],nDims)]
+            sr = [sr; repeat([(1e-4, max_scale)],n_dims)]
             optHypRes = Array{RBFHypersResult{Array{Float64,1},Array{Float64,1}},1}(undef,nFuncs)
         else
             optHypRes = Array{RBFHypersResult{Array{Float64,1},Float64},1}(undef,nFuncs)            
@@ -159,7 +158,7 @@ function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, opti
         # initiate exploration space for optimisation
         sr = [(1e-4, max_rbf_width), (0.0, 1.0)]
         if variable_dim_scaling 
-            sr = [sr; repeat([(1e-4, max_scale)],nDims)]
+            sr = [sr; repeat([(1e-4, max_scale)],n_dims)]
             optHypRes = Array{RBFHypersResult{Float64,Array{Float64,1}},1}(undef,nFuncs)
         else
             optHypRes = Array{RBFHypersResult{Float64,Float64},1}(undef,nFuncs)
@@ -176,17 +175,17 @@ end
 
 function RBFHypersResult(res,samples,kerns,variable_kernel_width::Bool,variable_dim_scaling::Bool)
     # Save the results
-    nObs = length(samples)
+    n_samples = length(samples)
     bestres = res.archive_output.best_candidate
 
     if variable_kernel_width
-        x = bestres[1:nObs]     
-        y = bestres[nObs+1:nObs+nObs] 
-        variable_dim_scaling ? axisScale = bestres[nObs+nObs+1:end] : axisScale = 1.0
+        x = bestres[1:n_samples]     
+        y = bestres[n_samples+1:n_samples+n_samples] 
+        variable_dim_scaling ? axisScale = bestres[n_samples+n_samples+1:end] : axisScale = 1.0
 
         kernind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
-        kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,nObs)
-        for j = 1:nObs
+        kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,n_samples)
+        for j = 1:n_samples
             kern[j] = kerns[kernind[j]](x[j])
         end
     elseif !variable_kernel_width
