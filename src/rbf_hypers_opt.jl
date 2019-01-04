@@ -240,60 +240,6 @@ end
 
 
 
-
-"""
-    _surrogate_interpolant(optres::T,plan,samples,estimationpoints,
-    oldMin,oldMax) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
-
-Evaluate an optimised interpolant at locations estimationpoints.
-"""
-function _surrogate_interpolant(optres::T,plan,samples,estimationpoints,
-                        ) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
-    
-    #Interpolation object based on the optimisation results
-    itp = interpolate(optres.kernelFunc, plan, samples)
-
-    #evaluate the interpolation object
-    ests = similar(estimationpoints[1:1,:])
-    for i = 1:size(estimationpoints,2)
-        ests[i] = ScatteredInterpolation.evaluate(itp, estimationpoints[:,i])[1]
-    end
-
-    return ests
-end
-
-
-function _surrogate_interpolant(optres::T,samples,plan,estimationpoints
-                        ) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
-    
-    scaledPoints = similar(plan)
-    for i = 1:size(scaledPoints,1)
-        scaledPoints[i,:] = _scale(plan[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i])
-    end
-    
-    #Interpolation object based on the optimisation results
-    itp = interpolate(optres.kernelFunc, scaledPoints, samples)
-
-
-    #evaluate the interpolation object
-    estimationpointsScaled = similar(estimationpoints)
-    for i = 1:size(estimationpointsScaled,1)
-        estimationpointsScaled[i,:] = _scale(estimationpoints[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i])        
-    end
-
-
-    ests = similar(estimationpoints[1:1,:])
-    for i = 1:size(estimationpoints,2)
-        ests[i] = ScatteredInterpolation.evaluate(itp, estimationpointsScaled[:,i])[1]
-    end
-
-    return ests
-end
-
-
-
-
-
 """
     _surrogate_interpolant(optres::T,points,observations,estimationpoints,
     oldMin,oldMax) where T <: RBFoptim_v1.HypersResult{U,Float64} where U
