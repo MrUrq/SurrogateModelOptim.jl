@@ -234,58 +234,55 @@ function _RBF_hypers_opt(   samples::Array{Float64,2},plan::Array{Float64,2},
     return kern_hyp_res
 end
 
+function point_scale(points,optres;base_scale::Array{Float64,2})
 
+    old_min = minimum(base_scale,dims=2)
+    old_max = maximum(base_scale,dims=2)
+
+    scaled_points = similar(points)
+    for i = 1:size(scaled_points,1)
+        scaled_points[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
+        old_min = old_min[i], old_max = old_max[i])
+    end
+    return scaled_points
+end
 
 """
-    _surrogate_interpolant(optres::T,points,observations,estimationpoints,
+    _surrogate_interpolant(optres::T,points,observations,estimation_point,
     old_min,old_max) where T <: RBFoptim_v1.HypersResult{U,Float64} where U
 
-Evaluate an optimised interpolant at locations estimationpoints.
+Evaluate an optimised interpolant at locations estimation_point.
 """
-function _surrogate_interpolant(optres::T,points,observations,estimationpoints,
-    old_min,old_max) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
+function _surrogate_interpolant(optres::T,points,observations,
+            estimation_point) where T <: SurrogateModelOptim.RBFHypersResult{U,Float64} where U
     
     #Interpolation object based on the optimisation results
     itp = interpolate(optres.kernelFunc, points, observations)
 
     #evaluate the interpolation object
-    ests = similar(estimationpoints[1:1,:])
-    for i = 1:size(estimationpoints,2)
-        ests[i] = ScatteredInterpolation.evaluate(itp, estimationpoints[:,i])[1]
-    end
+    estimation = ScatteredInterpolation.evaluate(itp, estimation_point)[1]
 
-    return ests
+
+    return [estimation]
 end
 
-
-function _surrogate_interpolant(optres::T,points,observations,estimationpoints,
-    old_min,old_max) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
+function _surrogate_interpolant(optres::T,points,observations,
+            estimation_point) where T <: SurrogateModelOptim.RBFHypersResult{U,Array{Float64,1}} where U
     
-    scaledPoints = similar(points)
-    for i = 1:size(scaledPoints,1)
-        scaledPoints[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
-        old_min = old_min[i], old_max = old_max[i])
-    end
-
+    
+    scaled_points = point_scale(points,optres,base_scale=points)
     
     #Interpolation object based on the optimisation results
-    itp = interpolate(optres.kernelFunc, scaledPoints, observations)
+    itp = interpolate(optres.kernelFunc, scaled_points, observations)
 
 
     #evaluate the interpolation object
-    estimationpointsScaled = similar(estimationpoints)
-    for i = 1:size(estimationpointsScaled,1)
-        estimationpointsScaled[i,:] = _scale(estimationpoints[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
-        old_min = old_min[i], old_max = old_max[i])        
-    end
+    scaled_estimation_point = point_scale(estimation_point,optres,base_scale=points)
+    
 
+    estimation = ScatteredInterpolation.evaluate(itp, scaled_estimation_point)[1]
 
-    ests = vec(similar(estimationpoints[1:1,:]))
-    for i = 1:size(estimationpoints,2)
-        ests[i] = ScatteredInterpolation.evaluate(itp, estimationpointsScaled[:,i])[1]
-    end
-
-    return ests
+    return [estimation]
 end
 
 
@@ -299,7 +296,7 @@ function surrogate_model(samples, plan, options)
     
     optres = pmap(_p_rbf_opt,1:num_interpolants)
     
-    return function (estimationpoints)        
+    return function (estimation_point)        
         res = Array{Float64,2}(undef,num_interpolants,1)
 
         for i = 1:length(optres)
@@ -307,9 +304,7 @@ function surrogate_model(samples, plan, options)
                                             optres[i],
                                             plan,
                                             samples',
-                                            estimationpoints,
-                                            minimum(plan,dims=2),
-                                            maximum(plan,dims=2)
+                                            estimation_point,
                                             )
         end
         return SurrogateEstimate(res)        
