@@ -59,6 +59,7 @@ import Statistics.mean
 include("types.jl")
 include("interface.jl")
 include("rbf_hypers_opt.jl")
+include("rbf_hypers_opt_utilities.jl")
 include("sample_infill.jl")
 include("scaling.jl")
 include("smoptimize.jl")
