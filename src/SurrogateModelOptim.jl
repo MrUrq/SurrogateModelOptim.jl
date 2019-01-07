@@ -63,6 +63,7 @@ include("rbf_hypers_opt_utilities.jl")
 include("sample_infill.jl")
 include("scaling.jl")
 include("smoptimize.jl")
+include("search_range.jl")
 
 
 #TODO

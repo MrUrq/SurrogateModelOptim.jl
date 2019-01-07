@@ -37,34 +37,14 @@ end
 function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
     
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
-            max_rbf_width, max_scale, cond_max, rbf_dist_metric,
-            rbf_opt_gens, kerns = options
+            min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
+            rbf_dist_metric, rbf_opt_gens, kerns, smooth, max_smooth = options
 
     n_dims, n_samples = size(plan)
 
-    # optimise hypers using the same kernel and width for each point
-    if variable_kernel_width
-
-        # initiate exploration space for optimisation
-        sr = [repeat([(1e-4, max_rbf_width)],n_samples); repeat([(0.0, 1.0)],n_samples)]
-        if variable_dim_scaling
-            sr = [sr; repeat([(1e-4, max_scale)],n_dims)]
-        else
-        end    
-
-    # optimise hypers using different kernels and different widths
-    elseif !variable_kernel_width
-                
-        # initiate exploration space for optimisation
-        sr = [(1e-4, max_rbf_width), (0.0, 1.0)]
-        if variable_dim_scaling 
-            sr = [sr; repeat([(1e-4, max_scale)],n_dims)]
-        else
-        end
-    
-    else
-        error("not supported combination of inputs")    
-    end
+    sr = construct_search_range(plan, variable_kernel_width,
+                                min_rbf_width, max_rbf_width, variable_dim_scaling,
+                                min_scale, max_scale, smooth, max_smooth)
     
     # run the optimisation
     return _RBF_hypers_opt(samples,plan,kerns,rbf_opt_gens,sr,options) 

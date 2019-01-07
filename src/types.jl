@@ -12,6 +12,7 @@
     variable_dim_scaling::Bool = true
     cond_max::Float64 = 1e4
     max_rbf_width::Float64 = 1000.0
+    min_rbf_width::Float64 = 1e-4
     max_scale::Float64 = 10.0
     min_scale::Float64 = 1e-4
     num_interpolants::Int = 1

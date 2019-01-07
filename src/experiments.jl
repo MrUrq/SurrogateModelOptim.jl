@@ -40,12 +40,16 @@ function funcplotX(fun,xmin,xmax,ymin,ymax)
 end
 
 
-ax = funcplotX(rosenbrock2d,-5,5,-5,5)
+ax2 = funcplotX(rosenbrock2d,-5,5,-5,5)
 
 Random.seed!(1)
-@time asd = smoptimize(x->(rosenbrock2d(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],SurrogateModelOptim.options(num_interpolants=20, num_start_samples=10, sampling_plan_opt_gens=100000, rbf_opt_gens=10000,  variable_kernel_width = true,
-                                                                                                       variable_dim_scaling = true,
-                                                                            ));ax = funcplotX(x->median(asd[3](x))[1],-5,5,-5,5)
+@time asd = smoptimize(x->(rosenbrock2d(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
+        SurrogateModelOptim.options(num_interpolants=20,
+                                    num_start_samples=10,
+                                    sampling_plan_opt_gens=100000,
+                                    rbf_opt_gens=10000,
+                                    variable_kernel_width = true,
+                                    variable_dim_scaling = true,));ax = funcplotX(x->median(asd[3](x))[1],-5,5,-5,5)
 
 
 
