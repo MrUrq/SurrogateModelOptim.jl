@@ -31,64 +31,48 @@ end
 
 
 
-
-
-
-function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
+function _rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
     
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
             rbf_dist_metric, rbf_opt_gens, kerns, smooth, max_smooth = options
 
-    n_dims, n_samples = size(plan)
+    samples = vec(samples_org)
 
+
+    # Create the hyperparameter search range based on the input options 
     sr = construct_search_range(plan, variable_kernel_width,
                                 min_rbf_width, max_rbf_width, variable_dim_scaling,
                                 min_scale, max_scale, smooth, max_smooth)
-    
-    # run the optimisation
-    return _RBF_hypers_opt(samples,plan,kerns,rbf_opt_gens,sr,options) 
-end
 
+    # RBF hyperparameter objective function
+    itp_obj = function (x)
+        interp_obj(x,kerns,samples,plan; 
+                rippa=rippa, variable_kernel_width=variable_kernel_width,
+                variable_dim_scaling=variable_dim_scaling, cond_max=cond_max)
+    end
 
-
-
-function _RBF_hypers_opt(   samples::Array{Float64,2},plan::Array{Float64,2},
-                            kerns,rbf_opt_gens,sr,options)
-
-    @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
-    max_rbf_width, max_scale, cond_max, rbf_dist_metric, smooth = options
-
-    samples = vec(samples)
-        
-    res = bboptimize(x -> interp_obj(x,kerns,samples,plan,rippa=rippa,
-            variable_kernel_width=variable_kernel_width,
-            variable_dim_scaling=variable_dim_scaling,cond_max=cond_max); 
+    # Optimize the interpolant hyperparameters
+    res = bboptimize(itp_obj; 
             Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
             TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
             TargetFitness = 1e-5, FitnessTolerance = 1e-6);
-    
-    bboptim_fcall_vector = res.archive_output.best_candidate;
         
 
     # Extract and order the results in an Array of RBFHypers
-    kern, scaling, smooth = extract_bboptim_hypers( bboptim_fcall_vector,plan,kerns,
-                                                    variable_kernel_width,
+    kern, scaling, smooth = extract_bboptim_hypers( res.archive_output.best_candidate,
+                                                    plan,kerns,variable_kernel_width,
                                                     variable_dim_scaling,smooth)
 
-    kern_hyp_res = RBFHypers(
-        kern,                                                       
-        scaling,                                                  
-        smooth                                                       
-        )
-
-    return kern_hyp_res
+    # Return the optimized hyperparameters in the correct type
+    return RBFHypers(kern, scaling, smooth)
 end
 
 
 
 
 
+############################################################################################Move the interpolation out from this function
 function _surrogate_interpolant(optres, points, observations, estimation_point)
     
     #Preprocess the points based on the settings used.

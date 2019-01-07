@@ -82,9 +82,14 @@ function model_infill(plan,samples,sm_interpolant,options)
     # #Return the point with the largest found distance 
     # return permutedims(bestres')
     ######################################
+    function fitness_all(x)
+        return (minimum((typemax(Int64)/100000,dist_infill_fun(x))),
+                minimum((typemax(Int64)/100000,min_infill_fun(x))),
+                minimum((typemax(Int64)/100000,std_infill_fun(x))),
+                minimum((typemax(Int64)/100000,min_std_infill_fun(x))))
+    end
     
-    fitness_all(x) = (dist_infill_fun(x), min_infill_fun(x), std_infill_fun(x), min_std_infill_fun(x))
-    @show(fitness_all([1.0,1.0]))
+    
     res = bboptimize(fitness_all; Method=:borg_moea,
             FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
             SearchRange=sr, ϵ=0.05,

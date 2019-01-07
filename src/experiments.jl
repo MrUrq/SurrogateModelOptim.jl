@@ -8,7 +8,7 @@ using Distances
 using ScatteredInterpolation
 using Statistics
 
-#ax = funcplotX(x->median(asd[3](x))[1],-5,5,-5,5)
+
 
 function funcplotX(fun,xmin,xmax,ymin,ymax)
     
@@ -40,16 +40,16 @@ function funcplotX(fun,xmin,xmax,ymin,ymax)
 end
 
 
-ax2 = funcplotX(rosenbrock2d,-5,5,-5,5)
+f = rosenbrock2d
 
-Random.seed!(1)
-@time asd = smoptimize(x->(rosenbrock2d(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
+res = smoptimize(x->(f(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
         SurrogateModelOptim.options(num_interpolants=20,
-                                    num_start_samples=10,
+                                    num_start_samples=15,
                                     sampling_plan_opt_gens=100000,
                                     rbf_opt_gens=10000,
                                     variable_kernel_width = true,
-                                    variable_dim_scaling = true,));ax = funcplotX(x->median(asd[3](x))[1],-5,5,-5,5)
+                                    variable_dim_scaling = true,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
+                                    
 
 
 

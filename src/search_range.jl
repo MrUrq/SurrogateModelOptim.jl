@@ -83,7 +83,7 @@ function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,variable_kernel_
             kern[j] = kerns[kern_ind[j]](width[j])
         end
     elseif !variable_kernel_width
-        kern = kerns[kern_ind](width)
+        kern = kerns[kern_ind[1]](width[1])
     end
 
     return kern, scaling, smooth
