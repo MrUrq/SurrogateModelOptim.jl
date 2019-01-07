@@ -64,12 +64,27 @@ function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,variable_kernel_
     (smooth == :single)   && (n_smooth = 1)
     (smooth == false)     && (n_smooth = 0)
 
-    width, kernel_float, scaling, smooth = extract_vector_range(n_kerns,
-                                                                n_kerns,
-                                                                n_dim_scales,
-                                                                n_smooth)
-    
-    kern_ind = round.(Int,_scale(kernel_float,1,length(kerns),old_min=0,old_max=1))
+    width_inds, kernel_float_inds, scaling_inds, smooth_inds = extract_vector_range(n_kerns,
+                                                                                    n_kerns,
+                                                                                    n_dim_scales,
+                                                                                    n_smooth)
 
-    return width, kern_ind, scaling, smooth
+    width = bboptim_fcall_vector[width_inds]
+    kernel_float = bboptim_fcall_vector[kernel_float_inds]
+    !(scaling_inds == false) ? scaling = bboptim_fcall_vector[scaling_inds] : scaling = scaling_inds
+    !(smooth_inds == false) ? smooth = bboptim_fcall_vector[smooth_inds] : smooth = smooth_inds
+    
+
+    # Arrange the RBF kernel result
+    kern_ind = round.(Int,_scale(kernel_float,1,length(kerns),old_min=0,old_max=1))
+    if variable_kernel_width
+        kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,n_samples)
+        for j = 1:n_samples
+            kern[j] = kerns[kern_ind[j]](width[j])
+        end
+    elseif !variable_kernel_width
+        kern = kerns[kern_ind](width)
+    end
+
+    return kern, scaling, smooth
 end

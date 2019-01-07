@@ -38,10 +38,10 @@ end
 
 
 
-using LatinHypercubeSampling: LHCoptim
+using LatinHypercubeSampling
 using ScatteredInterpolation
-using BlackBoxOptim: bboptimize, ParetoFitnessScheme, pareto_frontier, fitness, params
-using Parameters: reconstruct, type2dict, @with_kw, @unpack
+using BlackBoxOptim
+using Parameters
 using Distances
 using Statistics
 using LinearAlgebra

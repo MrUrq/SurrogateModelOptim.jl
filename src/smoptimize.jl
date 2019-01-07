@@ -19,7 +19,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
 
     sm_interpolant = surrogate_model(samples, plan, options)
         
-    ###################################### Bad way of doing this, just proof of concept
+    ##################################### Bad way of doing this, just proof of concept
     for i = 2:10
 
         println("Creating surrogate model")
@@ -39,20 +39,30 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
         @show minimum(samples)
     end
 
+    # tmp = Array{Float64,1}(10000)
+    # f_s = x->push!(tmp,f(best_candidate(x)))
+    # res = bboptimize(f;
+    #         Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, MaxFuncEvals=10000,
+    #         CallbackFunction = f_s,CallbackInterval = eps()*0.5),tmp;
+    # @show best_de_solution = f(res.archive_output.best_candidate)
     res = bboptimize(f;
-             Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, MaxFuncEvals=length(samples),
-             TraceMode=:silent);
-            @show best_de_solution = f(res.archive_output.best_candidate)
+            Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, MaxFuncEvals=length(samples),
+            TraceMode=:silent);
+    @show best_de_solution = f(res.archive_output.best_candidate)
 
+
+    ftol = 20000
     res = bboptimize(f;
-            Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, TargetFitness=minimum(samples),
-            TraceMode=:silent, );
-           @show equal_de_solution = res.f_calls
+            Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, TargetFitness=minimum(samples)-ftol,
+            FitnessTolerance = ftol, TraceMode=:silent);
+    @show equal_de_solution = res.f_calls
 
-            println("Best de = ", best_de_solution, ". Best surrogate = ", minimum(samples), ". Iterations of surrogate ", length(samples), ". Iterations to get equally good de solution = ", equal_de_solution, ". Performance inrease = ", equal_de_solution/length(samples))
+
+            println("Best de = ", best_de_solution, ". Best surrogate = ", minimum(samples), ". Function evals. ", length(samples), ". Iterations to get equally good de solution = ", equal_de_solution, ". Performance inrease = ", equal_de_solution/length(samples))
 
     return samples, plan, sm_interpolant, best_de_solution, minimum(samples), res
 end
+
 
 
 

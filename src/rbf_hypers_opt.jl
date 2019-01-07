@@ -51,49 +51,13 @@ function _rbf_hypers_opt(samples::Array{Float64,2}, plan::Array{Float64,2}, opti
 end
 
 
-function RBFHypers(res,samples,kerns,variable_kernel_width::Bool,variable_dim_scaling::Bool)
-    # Save the results
-    n_samples = length(samples)
-    bestres = res.archive_output.best_candidate
-
-    if variable_kernel_width
-        x = bestres[1:n_samples]     
-        y = bestres[n_samples+1:n_samples+n_samples] 
-        variable_dim_scaling ? axisScale = bestres[n_samples+n_samples+1:end] : axisScale = false
-
-        kern_ind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
-        kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,n_samples)
-        for j = 1:n_samples
-            kern[j] = kerns[kern_ind[j]](x[j])
-        end
-    elseif !variable_kernel_width
-        x = bestres[1]
-        y = bestres[2]
-        variable_dim_scaling ? axisScale = bestres[3:end] : axisScale = false
-
-        kern_ind = round.(Int,_scale(y,1,length(kerns),old_min=0,old_max=1))
-        kern = kerns[kern_ind](x)
-    end
-
-
-    kern_hyp_res = RBFHypers(
-        kern,                                                       #kernelFunc
-        axisScale,                                                  #scaling
-        false                                                      #fitness
-        )
-
-    return kern_hyp_res
-end
-
-
-
 
 
 function _RBF_hypers_opt(   samples::Array{Float64,2},plan::Array{Float64,2},
                             kerns,rbf_opt_gens,sr,options)
 
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
-    max_rbf_width, max_scale, cond_max, rbf_dist_metric = options
+    max_rbf_width, max_scale, cond_max, rbf_dist_metric, smooth = options
 
     samples = vec(samples)
         
@@ -104,12 +68,19 @@ function _RBF_hypers_opt(   samples::Array{Float64,2},plan::Array{Float64,2},
             TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
             TargetFitness = 1e-5, FitnessTolerance = 1e-6);
     
-    bestres = res.archive_output.best_candidate;
+    bboptim_fcall_vector = res.archive_output.best_candidate;
         
-    # Order the results in an Array of RBFHypers
-    kern_hyp_res = RBFHypers(res,samples,kerns,
-    variable_kernel_width,variable_dim_scaling)
-    
+
+    # Extract and order the results in an Array of RBFHypers
+    kern, scaling, smooth = extract_bboptim_hypers( bboptim_fcall_vector,plan,kerns,
+                                                    variable_kernel_width,
+                                                    variable_dim_scaling,smooth)
+
+    kern_hyp_res = RBFHypers(
+        kern,                                                       
+        scaling,                                                  
+        smooth                                                       
+        )
 
     return kern_hyp_res
 end
