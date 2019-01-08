@@ -49,7 +49,7 @@ res = smoptimize(x->(f(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x))))
                                     rbf_opt_gens=10000,
                                     variable_kernel_width = true,
                                     variable_dim_scaling = true,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
-                                    
+nothing                                    
 
 
 
