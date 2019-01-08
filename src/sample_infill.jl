@@ -83,17 +83,17 @@ function model_infill(plan,samples,sm_interpolant,options)
     # return permutedims(bestres')
     ######################################
     function fitness_all(x)
-        return (minimum((typemax(Int64)/100000,dist_infill_fun(x))),
-                minimum((typemax(Int64)/100000,min_infill_fun(x))),
-                minimum((typemax(Int64)/100000,std_infill_fun(x))),
-                minimum((typemax(Int64)/100000,min_std_infill_fun(x))))
+        return (minimum((1e10,dist_infill_fun(x))),
+                minimum((1e10,min_infill_fun(x))),
+                minimum((1e10,std_infill_fun(x))),
+                minimum((1e10,min_std_infill_fun(x))))
     end
     
     
     res = bboptimize(fitness_all; Method=:borg_moea,
             FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
-            SearchRange=sr, ϵ=0.05,
-            MaxFuncEvals=1000, TraceInterval=1.0, TraceMode=:silent);
+            SearchRange=sr, ϵ=0.001,
+            MaxFuncEvals=5000, TraceInterval=1.0, TraceMode=:silent);
     
     for i = 1:4
         pf = pareto_frontier(res)
