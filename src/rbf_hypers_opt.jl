@@ -21,7 +21,7 @@ function interp_obj(inpt::Vector{Float64}, kerns, samples,
 
     if (smooth == false)
         E = try
-            E = RMSErrorLOO(kern, samples, plan; rippa = rippa,
+            E = RMSErrorLOO(kern, samples, preprocessed_plan; rippa = rippa,
             cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
         catch 
             E = Inf
