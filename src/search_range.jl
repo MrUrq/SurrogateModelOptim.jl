@@ -78,9 +78,9 @@ function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,variable_kernel_
     # Arrange the RBF kernel result
     kern_ind = round.(Int,_scale(kernel_float,1,length(kerns),old_min=0,old_max=1))
     if variable_kernel_width
-        kern = Array{ScatteredInterpolation.RadialBasisFunction,1}(undef,n_samples)
-        for j = 1:n_samples
-            kern[j] = kerns[kern_ind[j]](width[j])
+        kern = Vector{ScatteredInterpolation.RadialBasisFunction}(undef,size(plan,2))
+        for i = 1:size(plan,2)
+            kern[i] = kerns[kern_ind[i]](width[i])
         end
     elseif !variable_kernel_width
         kern = kerns[kern_ind[1]](width[1])
@@ -88,3 +88,5 @@ function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,variable_kernel_
 
     return kern, scaling, smooth
 end
+ 
+ 

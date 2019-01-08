@@ -89,11 +89,10 @@ function model_infill(plan,samples,sm_interpolant,options)
                 minimum((1e10,min_std_infill_fun(x))))
     end
     
-    
     res = bboptimize(fitness_all; Method=:borg_moea,
             FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
-            SearchRange=sr, ϵ=0.001,
-            MaxFuncEvals=5000, TraceInterval=1.0, TraceMode=:silent);
+            SearchRange=sr, ϵ=0.0001,
+            MaxFuncEvals=20000, TraceInterval=1.0, TraceMode=:silent);
     
     for i = 1:4
         pf = pareto_frontier(res)

@@ -7,29 +7,30 @@ Objective function for optimisation of interpolation kernel function and width.
 function interp_obj(inpt::Vector{Float64}, kerns, samples,
         plan::Array{Float64,2}; rippa::Bool = false,
         variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
-        cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(), smooth = false)
+        smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean())
 
-    if variable_kernel_width
-        if variable_dim_scaling
-            return _scaled_interp_varK_varW_obj(inpt,kerns,samples,plan;
-            rippa = rippa, cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
-        else
-            return _interp_varK_varW_obj(inpt,kerns,samples,plan;
-            rippa = rippa, cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
+    
+    kern, scaling, smooth = extract_bboptim_hypers( inpt,
+                                                    plan,kerns,variable_kernel_width,
+                                                    variable_dim_scaling,smooth)
+    
+    optres = RBFHypers(kern, scaling, smooth)
+
+    #Preprocess the plan based on the settings used.
+    preprocessed_plan = preprocess_point(plan,optres,base_scale=plan)
+
+    if (smooth == false)
+        E = try
+            E = RMSErrorLOO(kern, samples, preprocessed_plan; rippa = rippa,
+            cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
+        catch 
+            E = Inf
         end
-    elseif !variable_kernel_width
-        if variable_dim_scaling
-            return _scaled_interp_fixK_fixW_obj(inpt,kerns,samples,plan;
-            rippa = rippa, cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
-        else
-            return _interp_fixK_fixW_obj(inpt,kerns,samples,plan;
-            rippa = rippa, cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
-        end        
     end
+    
+
+    return E
 end
-
-
-
 
 
 function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
