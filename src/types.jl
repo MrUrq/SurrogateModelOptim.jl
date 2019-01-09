@@ -17,7 +17,8 @@
     min_scale::Float64 = 1e-4
     num_interpolants::Int = 1
     smooth = false
-    max_smooth = 1.0
+    max_smooth::Float64 = 0.1
+    smooth_user::Float64 = 0.0
 end
 
 

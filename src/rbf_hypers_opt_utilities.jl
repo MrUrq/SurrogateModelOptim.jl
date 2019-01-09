@@ -28,7 +28,7 @@ for Radial Basis Functions at a cost of 𝛰(3)
 (compared to 𝛰(4)). `cond_max` sets the maximum allowed condition number for
 matrix `A` used in the RBF calculation.
 """
-function RMSErrorLOO(interp, samples, plan;
+function RMSErrorLOO(interp, samples, plan, smooth;
     cond_max::Float64=1e6, rippa::Bool=false, rbf_dist_metric = Euclidean())
 
     #initiate arrays
@@ -41,13 +41,13 @@ function RMSErrorLOO(interp, samples, plan;
         LOOinds[:,i] = filter(x -> x != i, 1:N) # Get the leave one out sub indices
     end
 
-    RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan;
+    RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan, smooth;
     cond_max=cond_max, rippa=rippa, rbf_dist_metric = rbf_dist_metric)
 end
 
 
 function RMSErrorLOO!(E, A, ests, LOOinds, interp::U,
- samples, plan::T; cond_max::Float64=1e6,
+ samples, plan::T, smooth; cond_max::Float64=1e6,
   rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray where U <: AbstractArray
 
     N = length(samples)
@@ -57,20 +57,27 @@ function RMSErrorLOO!(E, A, ests, LOOinds, interp::U,
         @assert typeof(interp) <: Vector{ScatteredInterpolation.RadialBasisFunction} "Rippas
               algorithm only available for Radial Basis Functions"
 
-     #interpolation object trained on the entire dataset
+        #interpolation object trained on the entire dataset
         itp, A = interpolate(interp, plan,
-      samples, returnRBFmatrix=true, metric = rbf_dist_metric)
+            samples, returnRBFmatrix=true, metric = rbf_dist_metric, smooth=smooth)
 
-     #RBF error estimation based on Rippas algorithm
+        #RBF error estimation based on Rippas algorithm
         E = _rippa(A, itp.w)
 
     else
         for i = 1:N
-         #interpolation object trained on the LOO information
-            itp, A = interpolate(interp[LOOinds[:,i]], plan[:,LOOinds[:,i]],
-             samples[LOOinds[:,i]], returnRBFmatrix=true, metric = rbf_dist_metric)
 
-         #evaluate the interpolation object in the LOO position
+            if typeof(smooth) <: AbstractVector
+                loo_smooth = smooth[LOOinds[:,i]]
+            else
+                loo_smooth = smooth
+            end
+
+            #interpolation object trained on the LOO information
+            itp, A = interpolate(interp[LOOinds[:,i]], plan[:,LOOinds[:,i]],
+                samples[LOOinds[:,i]], returnRBFmatrix=true, metric = rbf_dist_metric, smooth=loo_smooth)
+
+             #evaluate the interpolation object in the LOO position
             ests[i] = ScatteredInterpolation.evaluate(itp, plan[:,i])[1]
 
             E[i] = samples[i] - ests[i]
@@ -91,7 +98,7 @@ end
 
 
 
-function RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan::T;
+function RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan::T, smooth;
  cond_max::Float64=1e6, rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray
 
     N = length(samples)
@@ -102,25 +109,32 @@ function RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan::T;
 
         #interpolation object trained on the entire dataset
         itp, A = interpolate(interp, plan,
-         samples, returnRBFmatrix=true, metric = rbf_dist_metric)
+         samples, returnRBFmatrix=true, metric = rbf_dist_metric, smooth=smooth)
 
         #RBF error estimation based on Rippas algorithm
         E = _rippa(A, itp.w)
 
     else
         for i = 1:N
-        #interpolation object trained on the LOO information
-        itp, A = interpolate(interp, plan[:,LOOinds[:,i]],
-         samples[LOOinds[:,i]], returnRBFmatrix=true, metric = rbf_dist_metric)
 
-        #evaluate the interpolation object in the LOO position
+            if typeof(smooth) <: AbstractVector
+                loo_smooth = smooth[LOOinds[:,i]]
+            else
+                loo_smooth = smooth
+            end
+
+            #interpolation object trained on the LOO information
+            itp, A = interpolate(interp, plan[:,LOOinds[:,i]],
+                samples[LOOinds[:,i]], returnRBFmatrix=true, metric = rbf_dist_metric, smooth=loo_smooth)
+
+            #evaluate the interpolation object in the LOO position
             ests[i] = ScatteredInterpolation.evaluate(itp, plan[:,i])[1]
 
             E[i] = samples[i] - ests[i]
         end
     end
 
-#check the conditioning of matrix A for RBFs
+    #check the conditioning of matrix A for RBFs
     isrbf = typeof(interp) <: ScatteredInterpolation.RadialBasisFunction
 
     if isrbf && (cond(A) > cond_max)

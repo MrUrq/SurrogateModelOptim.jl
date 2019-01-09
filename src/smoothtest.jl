@@ -76,45 +76,45 @@ f = rosenbrock2d
 
 #display(funcplotX(f,-5,5,-5,5))
 
-
-
 res = smoptimize(x->(f(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
         SurrogateModelOptim.options(num_interpolants=20,
                                     num_start_samples=15,
                                     sampling_plan_opt_gens=100000,
-                                    rbf_opt_gens=10000,
-                                    variable_kernel_width = false,
-                                    variable_dim_scaling = false,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
-
-res = smoptimize(x->(f(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
-        SurrogateModelOptim.options(num_interpolants=20,
-                                    num_start_samples=15,
-                                    sampling_plan_opt_gens=100000,
-                                    rbf_opt_gens=10000,
-                                    variable_kernel_width = true,
-                                    variable_dim_scaling = false,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
-
-res = smoptimize(x->(f(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
-        SurrogateModelOptim.options(num_interpolants=20,
-                                    num_start_samples=15,
-                                    sampling_plan_opt_gens=100000,
-                                    rbf_opt_gens=10000,
-                                    variable_kernel_width = false,
-                                    variable_dim_scaling = true,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
-
-res = smoptimize(x->(f(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
-        SurrogateModelOptim.options(num_interpolants=20,
-                                    num_start_samples=15,
-                                    sampling_plan_opt_gens=100000,
-                                    rbf_opt_gens=10000,
+                                    rbf_opt_gens=50000,
+                                    smooth=:single,
+                                    rippa=true,
                                     variable_kernel_width = true,
                                     variable_dim_scaling = true,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
 
+res = smoptimize(x->(f(x)+0*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
+        SurrogateModelOptim.options(num_interpolants=20,
+                                    num_start_samples=15,
+                                    sampling_plan_opt_gens=100000,
+                                    rbf_opt_gens=50000,
+                                    smooth=:single,
+                                    rippa=false,
+                                    variable_kernel_width = true,
+                                    variable_dim_scaling = true,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
 
+res = smoptimize(x->(f(x)+3333*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
+        SurrogateModelOptim.options(num_interpolants=20,
+                                    num_start_samples=15,
+                                    sampling_plan_opt_gens=100000,
+                                    rbf_opt_gens=50000,
+                                    smooth=:single,
+                                    rippa=true,
+                                    variable_kernel_width = true,
+                                    variable_dim_scaling = true,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))
 
-
-
-                                    
+res = smoptimize(x->(f(x)+3333*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
+        SurrogateModelOptim.options(num_interpolants=20,
+                                    num_start_samples=15,
+                                    sampling_plan_opt_gens=100000,
+                                    rbf_opt_gens=50000,
+                                    smooth=:single,
+                                    rippa=false,
+                                    variable_kernel_width = true,
+                                    variable_dim_scaling = true,));display(funcplotX(x->median(res[3](x))[1],-5,5,-5,5))                                    
 return nothing
 
 

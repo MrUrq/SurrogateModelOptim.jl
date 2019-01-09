@@ -18,6 +18,7 @@ function construct_search_range(plan::Array{Float64,2}, variable_kernel_width,
     # Add the ridge regression smoothing search range
     (smooth == :variable) && (n_smooth = n_samples)
     (smooth == :single)   && (n_smooth = 1)
+    (smooth == :single_user)   && (n_smooth = 0)
     (smooth == false)     && (n_smooth = 0)
     push!(sr,   create_sr(  (min_range=0.0, max_range=max_smooth, n_times=n_smooth))...)
 
@@ -44,12 +45,15 @@ function extract_vector_range(vargs::Int64...)
         else
             push!(output, (count+1):(count+varg))
             count += varg      
+            (length(output[end]) == 1) && (output[end] = output[end][1])
         end
     end
     return Tuple(output)
 end
 
-function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,variable_kernel_width,variable_dim_scaling,smooth)
+function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,
+                                variable_kernel_width,variable_dim_scaling,
+                                smooth,smooth_user)
 
     n_dims, n_samples = size(plan)
     
@@ -62,18 +66,25 @@ function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,variable_kernel_
     # Ridge regression smoothing length
     (smooth == :variable) && (n_smooth = n_samples)
     (smooth == :single)   && (n_smooth = 1)
+    (smooth == :single_user)   && (n_smooth = 0)
     (smooth == false)     && (n_smooth = 0)
 
     width_inds, kernel_float_inds, scaling_inds, smooth_inds = extract_vector_range(n_kerns,
                                                                                     n_kerns,
                                                                                     n_dim_scales,
-                                                                                    n_smooth)
+                                                                                    n_smooth
+                                                                                    )
 
+    # Arrange the width and smoothing results
     width = bboptim_fcall_vector[width_inds]
     kernel_float = bboptim_fcall_vector[kernel_float_inds]
     !(scaling_inds == false) ? scaling = bboptim_fcall_vector[scaling_inds] : scaling = scaling_inds
-    !(smooth_inds == false) ? smooth = bboptim_fcall_vector[smooth_inds] : smooth = smooth_inds
+    (smooth == false) &&            (smooth = smooth_inds)
+    (smooth == :single) &&          (smooth = bboptim_fcall_vector[smooth_inds])
+    (smooth == :variable) &&        (smooth = bboptim_fcall_vector[smooth_inds])
+    (smooth == :single_user) &&     (smooth = smooth_user)
     
+
 
     # Arrange the RBF kernel result
     kern_ind = round.(Int,_scale(kernel_float,1,length(kerns),old_min=0,old_max=1))
@@ -83,7 +94,7 @@ function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,variable_kernel_
             kern[i] = kerns[kern_ind[i]](width[i])
         end
     elseif !variable_kernel_width
-        kern = kerns[kern_ind[1]](width[1])
+        kern = kerns[kern_ind](width)
     end
 
     return kern, scaling, smooth

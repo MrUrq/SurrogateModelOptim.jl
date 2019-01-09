@@ -27,7 +27,8 @@ function _update_options(search_range;kwargs...)
     end 
 
     #Make sure the correct options for smoothing is used
-    @assert ((options.smooth == false) || (options.smooth == :variable) || (options.smooth == :single)) "Not supported option for smooth"
+    @assert ((options.smooth == false) || (options.smooth == :variable) || 
+     (options.smooth == :single) || (options.smooth == :single_user)) "Not supported option for smooth"
 
     return options
 end

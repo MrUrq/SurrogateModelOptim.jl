@@ -44,6 +44,7 @@ using BlackBoxOptim
 using Parameters
 using Distances
 using Statistics
+using StatsBase
 using LinearAlgebra
 using Distributed
 using StaticArrays
@@ -69,6 +70,11 @@ include("search_range.jl")
 #TODO
 #####Tracing
 #####Smoothing - Optimize the smoothness level 
+#####Remove outliers from std infill.
+#####Evaluate function in the convex hull
+#####Ability to retain sm params. 
+#####Options for infill
+#####Gather statistics, rippa or not? Then multiple regression points or not?
 #####Result type containing
         # Original samples
         # Infill points

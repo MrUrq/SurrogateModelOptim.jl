@@ -20,7 +20,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
     sm_interpolant = surrogate_model(samples, plan, options)
         
     ##################################### Bad way of doing this, just proof of concept
-    for i = 2:10
+    for i = 2:15
 
         println("Creating surrogate model")
         #Create the optimized Radial Basis Function interpolant 

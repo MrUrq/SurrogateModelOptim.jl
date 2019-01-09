@@ -7,27 +7,26 @@ Objective function for optimisation of interpolation kernel function and width.
 function interp_obj(inpt::Vector{Float64}, kerns, samples,
         plan::Array{Float64,2}; rippa::Bool = false,
         variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
-        smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean())
+        smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
+        smooth_user::Float64 = 0.0)
 
     
-    kern, scaling, smooth = extract_bboptim_hypers( inpt,
-                                                    plan,kerns,variable_kernel_width,
-                                                    variable_dim_scaling,smooth)
+    kern, scaling, smooth = extract_bboptim_hypers( inpt,plan,kerns,variable_kernel_width,
+                                                    variable_dim_scaling,smooth,
+                                                    smooth_user)
     
     optres = RBFHypers(kern, scaling, smooth)
 
     #Preprocess the plan based on the settings used.
     preprocessed_plan = preprocess_point(plan,optres,base_scale=plan)
 
-    if (smooth == false)
-        E = try
-            E = RMSErrorLOO(kern, samples, preprocessed_plan; rippa = rippa,
-            cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
-        catch 
-            E = Inf
-        end
-    end
     
+    E = try
+        E = RMSErrorLOO(kern, samples, preprocessed_plan, smooth; rippa = rippa,
+        cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
+    catch 
+        E = Inf
+    end
 
     return E
 end
@@ -37,7 +36,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
     
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
-            rbf_dist_metric, rbf_opt_gens, kerns, smooth, max_smooth = options
+            rbf_dist_metric, rbf_opt_gens, kerns, smooth, max_smooth, smooth_user = options
 
     samples = vec(samples_org)
 
@@ -63,7 +62,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
         
     kern, scaling, smooth = extract_bboptim_hypers( res.archive_output.best_candidate,
                                                     plan,kerns,variable_kernel_width,
-                                                    variable_dim_scaling,smooth)
+                                                    variable_dim_scaling,smooth,smooth_user)
 
     # Return the optimized hyperparameters in the correct type
     return RBFHypers(kern, scaling, smooth)
@@ -90,8 +89,9 @@ function surrogate_model(samples, plan, options)
     for i = 1:num_interpolants
         #Preprocess the points based on the settings used.
         preprocessed_point = preprocess_point(plan,optres[i],base_scale=plan)
-
-        itp[i] = interpolate(optres[i].kernelFunc, preprocessed_point, observations)
+        
+        itp[i] = interpolate(optres[i].kernelFunc, preprocessed_point,
+                             observations, smooth=optres[i].smooth)
     end
 
     return function (estimation_point)        
