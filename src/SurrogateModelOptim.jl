@@ -98,13 +98,15 @@ include("search_range.jl")
 
 
 #TODO
-#####Tracing
-#####Smoothing - Optimize the smoothness level 
-#####Remove outliers from std infill.
-#####Evaluate function in the convex hull
-#####Ability to retain sm params. 
+#####Tracing - Handle in nice way with option :verbose or :silent
+#####Remove outliers from std infill. Gather statistics on this if it should be used
+#####PlotlyJS parallel coordinates
+#####Ability to retain sm params. Do this with an option or result type
 #####Options for infill
 #####Gather statistics, rippa or not? Then multiple regression points or not?
+#####Statistics, infill criteria, choose different. Recursive criteria, like every other is distance and every other is min?
+#####Statistics, infill criteria of min-std and min. Always take min and find min-std with the greatest distance from min.
+#####keep adding N number of such points.
 #####Result type containing
         # Original samples
         # Infill points
@@ -115,7 +117,6 @@ include("search_range.jl")
 
 #####Infill
     #Verify that the infill works as expected with small test function
-    #Assert that the infill points are not the same as the samples
     #Handle several infill methods
     #Pareto front type of infill? 
     #How to define the distance between samples of a pareto front?
@@ -132,7 +133,7 @@ include("search_range.jl")
 #Done   #1. min(Median prediction - 1STD)
 #Done   #2. min(Median prediction - 2STD)
         #3. min(Median prediction) >= c Distance from any other point
-        #4. min(Median prediction - xSTD) where X is the smallest value acheiving distance
+        #4. min(Median prediction - xSTD) where X is the smallest value achieving distance
         #   >= c from any other point
 
             

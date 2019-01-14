@@ -18,16 +18,16 @@ function mean(res::SurrogateModelOptim.SurrogateEstimate{Array{Float64,2}})
     mean(res.sm_estimate, dims = 1)
 end
 
-function _nearest_point(kdtree,sm_interpolant,x)
+function _nearest_point(kdtree,res,sm_interpolant,x)
     x = permutedims(x')
-    v_tmp = [x; median(sm_interpolant(x))]
+    v_tmp = [x; median(sm_interpolant(res,x))]
     v = SVector{length(v_tmp)}(v_tmp)
     idxs, dists = knn(kdtree, v, 1, true)
     
     return dists[1]
 end
 
-function distance_infill(plan,samples,sm_interpolant,options)
+function distance_infill(plan,samples,res,sm_interpolant,options)
 
     #KD-tree for the plan as well as the samples from the plan
     combined_plan_samples = [plan;samples]
@@ -37,24 +37,27 @@ function distance_infill(plan,samples,sm_interpolant,options)
     #surrogate model at that point and checking the overall distance while 
     #taking into consideration the function output. I.e constrained to the function surface
 
-    return x -> 1/_nearest_point(kdtree,sm_interpolant,x)
+    return x -> 1/_nearest_point(kdtree,res,sm_interpolant,x)
 end
 
-function minimum_infill(sm_interpolant)
-    x->median(sm_interpolant(x))[1]
+function minimum_infill(res,sm_interpolant)
+    x->median(sm_interpolant(res,x))[1]
 end
 
-function std_infill(sm_interpolant)
-    x->1/(std(sm_interpolant(x)))[1]
+function std_infill(res,sm_interpolant)
+    x->1/(std(sm_interpolant(res,x)))[1]
 end
 
-function min_std_infill(c,sm_interpolant)
-    x->median(sm_interpolant(x))[1]-c*std(sm_interpolant(x))[1]
-end
-
-function min_std_zscore_infill(c,sm_interpolant)
+function min_std_infill(c,res,sm_interpolant)
     function (x)
-        y = sm_interpolant(x).sm_estimate
+        ret = sm_interpolant(res,x)
+        median(ret)[1]-c*std(ret)[1]
+    end
+end
+
+function min_std_zscore_infill(c,res,sm_interpolant)
+    function (x)
+        y = sm_interpolant(res,x).sm_estimate
 
         y_filt = y[findall((x -> (x < 1) & (x > -1)), zscore(y))]
         median(y)[1]-c*std(y_filt)[1]
@@ -64,26 +67,26 @@ end
 
 function model_infill(plan,samples,sm_interpolant,options)
 
-    @unpack rbf_opt_gens = options
+    @unpack rbf_opt_gens, num_interpolants = options
 
+    res1 = Array{Float64,2}(undef,num_interpolants,1)
+    res2 = Array{Float64,2}(undef,num_interpolants,1)
+    res3 = Array{Float64,2}(undef,num_interpolants,1)
+    res4 = Array{Float64,2}(undef,num_interpolants,1)
+    res5 = Array{Float64,2}(undef,num_interpolants,1)
 
-    dist_infill_fun = distance_infill(plan,samples,sm_interpolant,options)
+    dist_infill_fun = distance_infill(plan,samples,res1,sm_interpolant,options)
 
-    min_infill_fun = minimum_infill(sm_interpolant)
+    min_infill_fun = minimum_infill(res2,sm_interpolant)
 
-    std_infill_fun = std_infill(sm_interpolant) 
+    std_infill_fun = std_infill(res3,sm_interpolant) 
 
-    min_std_infill_fun = min_std_infill(2,sm_interpolant)
+    min_std_infill_fun = min_std_infill(2,res4,sm_interpolant)
 
-    min_std_infill_zscore_fun = min_std_zscore_infill(1,sm_interpolant)
+    min_std_infill_zscore_fun = min_std_zscore_infill(1,res5,sm_interpolant)
 
     #The search takes places in the design space
     sr = vcat(extrema(plan,dims = 2)...)
-    
-
-               
-    
-    
     
     function fitness_all(x)
         return (minimum((1e10,dist_infill_fun(x))),
@@ -98,7 +101,7 @@ function model_infill(plan,samples,sm_interpolant,options)
             global res = bboptimize(fitness_all; Method=:borg_moea,
                     FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
                     SearchRange=sr, ϵ=0.001,
-                    MaxFuncEvals=100000, TraceInterval=1.0, TraceMode=:silent);
+                    MaxFuncEvals=5000, TraceMode=:silent);
             infill_incomplete = false
         catch
         end

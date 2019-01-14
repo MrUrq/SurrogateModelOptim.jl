@@ -94,8 +94,7 @@ function surrogate_model(samples, plan, options)
                              observations, smooth=optres[i].smooth)
     end
 
-    return function (estimation_point)        
-        res = Array{Float64,2}(undef,num_interpolants,1)
+    return function (res,estimation_point)        
 
         for i = 1:num_interpolants
             preprocessed_est_point = preprocess_point(estimation_point,optres[i],base_scale=plan)

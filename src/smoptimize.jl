@@ -17,10 +17,10 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
     samples = mapslices(f,plan,dims=1)
     @show minimum(samples)
 
-    sm_interpolant = surrogate_model(samples, plan, options)
+    sm_interpolant = surrogate_model(samples, plan, options)    
         
     ##################################### Bad way of doing this, just proof of concept
-    for i = 2:25
+    for i = 2:20
 
         println("Creating surrogate model")
         #Create the optimized Radial Basis Function interpolant 
@@ -48,7 +48,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
     end        
 
     res = bboptimize(f; SearchRange=search_range,
-                        PopulationSize=num_start_samples, MaxFuncEvals=10000,
+                        PopulationSize=num_start_samples, MaxFuncEvals=100000,
                         CallbackFunction = f_c,CallbackInterval = eps(), 
                         TraceMode = :silent);
     
@@ -56,7 +56,11 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
     equal_iterations_fitness = sol_hist_fitness[equal_iterations_ind]
 
     iterations_ind_for_equal_performance = findfirst(x-> x <= minimum(samples),sol_hist_fitness)
-    iterations_for_equal_performance = sol_hist_iteration[iterations_ind_for_equal_performance]
+    if iterations_ind_for_equal_performance == nothing
+        iterations_ind_for_equal_performance = Inf
+    else    
+        iterations_for_equal_performance = sol_hist_iteration[iterations_ind_for_equal_performance]
+    end
 
     println("Function evaluations, ", length(samples), ".  Best DE = ", repr(equal_iterations_fitness), ". Best surrogate = ", minimum(samples))
     println("DE iterations for >= performance = ", repr(iterations_for_equal_performance), ".")
