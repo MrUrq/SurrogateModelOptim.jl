@@ -85,49 +85,52 @@ function model_infill(plan,samples,sm_interpolant,options)
     
     
     
-    # function fitness_all(x)
-    #     return (minimum((1e10,dist_infill_fun(x))),
-    #             minimum((1e10,min_infill_fun(x))),
-    #             minimum((1e10,std_infill_fun(x))),
-    #             minimum((1e10,min_std_infill_fun(x))))
-    # end
-    
-    # infill_incomplete = true
-    # while infill_incomplete
-    #     try 
-    #         global res = bboptimize(fitness_all; Method=:borg_moea,
-    #                 FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
-    #                 SearchRange=sr, ϵ=0.001,
-    #                 MaxFuncEvals=5000, TraceInterval=1.0, TraceMode=:silent);
-    #         infill_incomplete = false
-    #     catch
-    #     end
-    # end
-    
-    # for i = 1:4
-    #     pf = pareto_frontier(res)
-    #     best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
-    #     bo1_solution = params(pf[idx_obj1]) # get the solution candidate itself... 
-    #     @show bo1_solution
-    #     @show best_obj1
-    #     plan = [plan deepcopy(permutedims(bo1_solution'))]
-    # end
-    # return plan   
-
-
-
-
-    fun = [x->minimum((1e10,min_infill_fun(x))), x->minimum((1e10,min_std_infill_zscore_fun(x)))]
-    for i = 1:length(fun)
-        res = bboptimize(fun[i];
-                Method=:de_rand_1_bin,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
-                TraceMode=:silent);
-        @show bestres = res.archive_output.best_candidate
-        @show bestfit = res.archive_output.best_fitness
-        
-        #Return the point with the best function value
-        plan = [plan permutedims(bestres')]        
+    function fitness_all(x)
+        return (minimum((1e10,dist_infill_fun(x))),
+                minimum((1e10,min_infill_fun(x))),
+                minimum((1e10,std_infill_fun(x))),
+                minimum((1e10,min_std_infill_fun(x))))
     end
+    
+    infill_incomplete = true
+    while infill_incomplete
+        try 
+            global res = bboptimize(fitness_all; Method=:borg_moea,
+                    FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
+                    SearchRange=sr, ϵ=0.001,
+                    MaxFuncEvals=100000, TraceInterval=1.0, TraceMode=:silent);
+            infill_incomplete = false
+        catch
+        end
+    end
+    
+    for i = 1:4
+        pf = pareto_frontier(res)
+        best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
+        bo1_solution = params(pf[idx_obj1]) # get the solution candidate itself... 
+        @show bo1_solution
+        @show best_obj1
+        plan = [plan deepcopy(permutedims(bo1_solution'))]
+    end
+    return plan   
+
+
+
+
+    # fun = [x->minimum((1e10,min_infill_fun(x))),
+    #        x->minimum((1e10,min_std_infill_zscore_fun(x))),
+    #        x->minimum((1e10,dist_infill_fun(x)))]
+
+    # for i = 1:length(fun)
+    #     res = bboptimize(fun[i];
+    #             Method=:de_rand_1_bin,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
+    #             TraceMode=:silent);
+    #     @show bestres = res.archive_output.best_candidate
+    #     @show bestfit = res.archive_output.best_fitness
+        
+    #     #Return the point with the best function value
+    #     plan = [plan permutedims(bestres')]        
+    # end
     return plan   
 end
 

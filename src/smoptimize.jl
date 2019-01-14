@@ -20,7 +20,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
     sm_interpolant = surrogate_model(samples, plan, options)
         
     ##################################### Bad way of doing this, just proof of concept
-    for i = 2:15
+    for i = 2:25
 
         println("Creating surrogate model")
         #Create the optimized Radial Basis Function interpolant 
@@ -47,7 +47,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
         push!(sol_hist_iteration, BlackBoxOptim.num_func_evals(oc))
     end        
 
-    res = bboptimize(f; SearchRange=(-5.0,5.0), NumDimensions = 2,
+    res = bboptimize(f; SearchRange=search_range,
                         PopulationSize=num_start_samples, MaxFuncEvals=10000,
                         CallbackFunction = f_c,CallbackInterval = eps(), 
                         TraceMode = :silent);
