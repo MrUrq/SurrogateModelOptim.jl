@@ -4,6 +4,7 @@ export  smoptimize,
         rosenbrock2d,
         rotatedHyperElipsoid,
         styblinskiTang,
+        hart6,
         minimum,
         maximum,
         std,
@@ -38,12 +39,42 @@ end
 
 
 
-using LatinHypercubeSampling: LHCoptim
+function hart6(x)    
+    alpha = [1.0 1.2 3.0 3.2]
+    A = [10 3 17 3.5 1.7 8;
+         0.05 10 17 0.1 8 14;
+         3 3.5 1.7 10 17 8;
+         17 8 0.05 10 0.1 14];
+    P = 10^(-4) * [1312 1696 5569 124 8283 5886;
+                   2329 4135 8307 3736 1004 9991;
+                   2348 1451 3522 2883 3047 6650;
+                   4047 8828 8732 5743 1091 381]
+    
+    outer = 0
+    for ii = 1:4
+        inner = 0
+        for jj = 1:6
+            xj = x[jj]
+            Aij = A[ii, jj]
+            Pij = P[ii, jj]
+            inner = inner + Aij*(xj-Pij)^2
+        end
+        new = alpha[ii] * exp(-inner)
+        outer = outer + new
+    end
+    
+    y = -outer
+end
+
+
+
+using LatinHypercubeSampling
 using ScatteredInterpolation
-using BlackBoxOptim: bboptimize, ParetoFitnessScheme, pareto_frontier, fitness, params
-using Parameters: reconstruct, type2dict, @with_kw, @unpack
+using BlackBoxOptim
+using Parameters
 using Distances
 using Statistics
+using StatsBase
 using LinearAlgebra
 using Distributed
 using StaticArrays
@@ -59,14 +90,21 @@ import Statistics.mean
 include("types.jl")
 include("interface.jl")
 include("rbf_hypers_opt.jl")
+include("rbf_hypers_opt_utilities.jl")
 include("sample_infill.jl")
 include("scaling.jl")
 include("smoptimize.jl")
+include("search_range.jl")
 
 
 #TODO
 #####Tracing
 #####Smoothing - Optimize the smoothness level 
+#####Remove outliers from std infill.
+#####Evaluate function in the convex hull
+#####Ability to retain sm params. 
+#####Options for infill
+#####Gather statistics, rippa or not? Then multiple regression points or not?
 #####Result type containing
         # Original samples
         # Infill points

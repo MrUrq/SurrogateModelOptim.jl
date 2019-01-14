@@ -12,23 +12,27 @@
     variable_dim_scaling::Bool = true
     cond_max::Float64 = 1e4
     max_rbf_width::Float64 = 1000.0
+    min_rbf_width::Float64 = 1e-4
     max_scale::Float64 = 10.0
     min_scale::Float64 = 1e-4
     num_interpolants::Int = 1
+    smooth = false
+    max_smooth::Float64 = 0.1
+    smooth_user::Float64 = 0.0
 end
 
 
 """
-    RBFHypersResult(width::S,kernelFunc,scaling::U,fitness::Float64)
+    RBFHypers(width::S,kernelFunc,scaling::U,fitness::Float64)
 
 Datastructure to store results from the optimisation of an RBF interpolation kernel
 """
-struct RBFHypersResult{T,U}
-    width::T
+struct RBFHypers{T,U}
     kernelFunc
-    scaling::U
-    fitness::Float64
+    scaling::T
+    smooth::U
 end
+
 
 struct SurrogateEstimate{T}
     sm_estimate::T

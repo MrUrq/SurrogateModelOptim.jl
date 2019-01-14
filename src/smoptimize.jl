@@ -19,8 +19,8 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
 
     sm_interpolant = surrogate_model(samples, plan, options)
         
-    ###################################### Bad way of doing this, just proof of concept
-    for i = 2:10
+    ##################################### Bad way of doing this, just proof of concept
+    for i = 2:25
 
         println("Creating surrogate model")
         #Create the optimized Radial Basis Function interpolant 
@@ -39,38 +39,32 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
         @show minimum(samples)
     end
 
-    res = bboptimize(f;
-             Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, MaxFuncEvals=length(samples),
-             TraceMode=:silent);
-            @show best_de_solution = f(res.archive_output.best_candidate)
+    
+    sol_hist_fitness = Array{Float64,1}()
+    sol_hist_iteration = Array{Int64,1}()
+    f_c = function (oc)
+        push!(sol_hist_fitness, best_fitness(oc))
+        push!(sol_hist_iteration, BlackBoxOptim.num_func_evals(oc))
+    end        
 
-    res = bboptimize(f;
-            Method=:de_rand_1_bin,SearchRange=search_range, PopulationSize=num_start_samples, TargetFitness=minimum(samples),
-            TraceMode=:silent, );
-           @show equal_de_solution = res.f_calls
+    res = bboptimize(f; SearchRange=search_range,
+                        PopulationSize=num_start_samples, MaxFuncEvals=10000,
+                        CallbackFunction = f_c,CallbackInterval = eps(), 
+                        TraceMode = :silent);
+    
+    equal_iterations_ind = findfirst(x-> x >= length(samples),sol_hist_iteration)
+    equal_iterations_fitness = sol_hist_fitness[equal_iterations_ind]
 
-            println("Best de = ", best_de_solution, ". Best surrogate = ", minimum(samples), ". Iterations of surrogate ", length(samples), ". Iterations to get equally good de solution = ", equal_de_solution, ". Performance inrease = ", equal_de_solution/length(samples))
+    iterations_ind_for_equal_performance = findfirst(x-> x <= minimum(samples),sol_hist_fitness)
+    iterations_for_equal_performance = sol_hist_iteration[iterations_ind_for_equal_performance]
 
-    return samples, plan, sm_interpolant, best_de_solution, minimum(samples), res
+    println("Function evaluations, ", length(samples), ".  Best DE = ", repr(equal_iterations_fitness), ". Best surrogate = ", minimum(samples))
+    println("DE iterations for >= performance = ", repr(iterations_for_equal_performance), ".")
+    println("Performance increase = ", repr(round(iterations_for_equal_performance/length(samples); digits=2)), ".")
+    
+    
+
+    return samples, plan, sm_interpolant
 end
-
-
-
-# # trace current optimization state,
-# # Called by OptRunController trace_progress()
-# function trace_state(io::IO, alg::BorgMOEA, mode::Symbol)
-#     println(io, "pop.size=", popsize(alg.population),
-#                 " arch.size=", length(archive(alg)),
-#                 " n.restarts=", alg.n_restarts)
-#     if mode == :verbose
-#         # output recombination operator rates
-#         println(io, "P(recombine):")
-#         for i in eachindex(alg.recombinate)
-#             println(io, "  #$i(", alg.recombinate[i], ")=",
-#                     @sprintf("%.4f",alg.recombinate_distr.p[i]))
-#         end
-#     end
-# end
-
 
 

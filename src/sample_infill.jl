@@ -52,6 +52,15 @@ function min_std_infill(c,sm_interpolant)
     x->median(sm_interpolant(x))[1]-c*std(sm_interpolant(x))[1]
 end
 
+function min_std_zscore_infill(c,sm_interpolant)
+    function (x)
+        y = sm_interpolant(x).sm_estimate
+
+        y_filt = y[findall((x -> (x < 1) & (x > -1)), zscore(y))]
+        median(y)[1]-c*std(y_filt)[1]
+    end
+end
+
 
 function model_infill(plan,samples,sm_interpolant,options)
 
@@ -66,6 +75,8 @@ function model_infill(plan,samples,sm_interpolant,options)
 
     min_std_infill_fun = min_std_infill(2,sm_interpolant)
 
+    min_std_infill_zscore_fun = min_std_zscore_infill(1,sm_interpolant)
+
     #The search takes places in the design space
     sr = vcat(extrema(plan,dims = 2)...)
     
@@ -74,21 +85,24 @@ function model_infill(plan,samples,sm_interpolant,options)
     
     
     
-    ######################################
-    # res = bboptimize(min_infill_fun;
-    #         Method=:de_rand_1_bin,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
-    #         TraceMode=:silent);
-    # bestres = res.archive_output.best_candidate
-    # #Return the point with the largest found distance 
-    # return permutedims(bestres')
-    ######################################
+    function fitness_all(x)
+        return (minimum((1e10,dist_infill_fun(x))),
+                minimum((1e10,min_infill_fun(x))),
+                minimum((1e10,std_infill_fun(x))),
+                minimum((1e10,min_std_infill_fun(x))))
+    end
     
-    fitness_all(x) = (dist_infill_fun(x), min_infill_fun(x), std_infill_fun(x), min_std_infill_fun(x))
-    @show(fitness_all([1.0,1.0]))
-    res = bboptimize(fitness_all; Method=:borg_moea,
-            FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
-            SearchRange=sr, ϵ=0.05,
-            MaxFuncEvals=1000, TraceInterval=1.0, TraceMode=:silent);
+    infill_incomplete = true
+    while infill_incomplete
+        try 
+            global res = bboptimize(fitness_all; Method=:borg_moea,
+                    FitnessScheme=ParetoFitnessScheme{4}(is_minimizing=true),
+                    SearchRange=sr, ϵ=0.001,
+                    MaxFuncEvals=100000, TraceInterval=1.0, TraceMode=:silent);
+            infill_incomplete = false
+        catch
+        end
+    end
     
     for i = 1:4
         pf = pareto_frontier(res)
@@ -98,6 +112,25 @@ function model_infill(plan,samples,sm_interpolant,options)
         @show best_obj1
         plan = [plan deepcopy(permutedims(bo1_solution'))]
     end
+    return plan   
+
+
+
+
+    # fun = [x->minimum((1e10,min_infill_fun(x))),
+    #        x->minimum((1e10,min_std_infill_zscore_fun(x))),
+    #        x->minimum((1e10,dist_infill_fun(x)))]
+
+    # for i = 1:length(fun)
+    #     res = bboptimize(fun[i];
+    #             Method=:de_rand_1_bin,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
+    #             TraceMode=:silent);
+    #     @show bestres = res.archive_output.best_candidate
+    #     @show bestfit = res.archive_output.best_fitness
+        
+    #     #Return the point with the best function value
+    #     plan = [plan permutedims(bestres')]        
+    # end
     return plan   
 end
 

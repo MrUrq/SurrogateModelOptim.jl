@@ -26,6 +26,10 @@ function _update_options(search_range;kwargs...)
         options = reconstruct(options,variable_dim_scaling = false)  
     end 
 
+    #Make sure the correct options for smoothing is used
+    @assert ((options.smooth == false) || (options.smooth == :variable) || 
+     (options.smooth == :single) || (options.smooth == :single_user)) "Not supported option for smooth"
+
     return options
 end
 
