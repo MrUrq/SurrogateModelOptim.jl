@@ -74,8 +74,12 @@ end
 
 #Returns anonymous function that is an optimised RBF-based surrogate model
 function surrogate_model(samples, plan, options)
-    
-    @unpack num_interpolants = options
+
+    @unpack num_interpolants, trace = options
+
+    if trace
+        println("Creating optimized surrogate model ...")
+    end
     
     #Optimize RBF hypers for the ensamble of interpolants
     optres = pmap(  (x)->rbf_hypers_opt(samples, plan, options), 
@@ -94,7 +98,7 @@ function surrogate_model(samples, plan, options)
                              observations, smooth=optres[i].smooth)
     end
 
-    return function (res,estimation_point)        
+    sm_func = function (res,estimation_point)        
 
         for i = 1:num_interpolants
             preprocessed_est_point = preprocess_point(estimation_point,optres[i],base_scale=plan)
@@ -104,6 +108,8 @@ function surrogate_model(samples, plan, options)
         end
         return SurrogateEstimate(res)        
     end
+
+    return sm_func, optres
 end
 
 

@@ -79,6 +79,7 @@ using LinearAlgebra
 using Distributed
 using StaticArrays
 using NearestNeighbors
+using Printf
 
 #Extended methods
 import Base.minimum
@@ -104,6 +105,9 @@ include("search_range.jl")
 #####Ability to retain sm params. Do this with an option or result type
 #####Options for infill
 #####Gather statistics, rippa or not? Then multiple regression points or not?
+#####Fancy results printing
+#####Show accuracy as a function of "time" predicted and actual
+#####Integer test case
 #####Statistics, infill criteria, choose different. Recursive criteria, like every other is distance and every other is min?
 #####Statistics, infill criteria of min-std and min. Always take min and find min-std with the greatest distance from min.
 #####keep adding N number of such points.

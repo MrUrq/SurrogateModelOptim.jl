@@ -1,6 +1,6 @@
 @with_kw struct Options
     num_start_samples::Int = 10
-    show_trace::Bool = true
+    trace::Bool = true
     sampling_plan_opt_gens::Int = 1000
     rippa::Bool = true
     kerns = [ScatteredInterpolation.Gaussian, ScatteredInterpolation.InverseQuadratic,
@@ -17,8 +17,11 @@
     min_scale::Float64 = 1e-4
     num_interpolants::Int = 1
     smooth = false
-    max_smooth::Float64 = 0.1
+    max_smooth::Float64 = 0.01
     smooth_user::Float64 = 0.0
+    iterations::Int64 = 10
+    num_infill_points::Int64 = 1
+    infill_funcs::Array{Symbol,1} = [:min,:min_2std,:std]
 end
 
 

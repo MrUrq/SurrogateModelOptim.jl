@@ -8,13 +8,9 @@ end
 Internal function of SurrogateModelOptim to update the options to suitable default
 values. 
 """
-function _update_options(search_range;kwargs...)
-    
-    #Instantiate default options list
-    def_options = Options()     
-    
-    #Update options with user settings
-    options = reconstruct(def_options,kwargs)                   
+function _update_options(search_range::Array{Tuple{Float64,Float64},1};kwargs...)
+
+    options = _update_options(;kwargs...)    
         
     #Set the number of sample points as 10 times the number of dimensions by default
     if :num_start_samples ∉ keys(kwargs)
@@ -26,6 +22,23 @@ function _update_options(search_range;kwargs...)
         options = reconstruct(options,variable_dim_scaling = false)  
     end 
 
+    return options
+end
+
+"""
+    _update_options(kwargs...)
+
+Internal function of SurrogateModelOptim to update the options to suitable default
+values. 
+"""
+function _update_options(;kwargs...)
+    
+    #Instantiate default options list
+    def_options = Options()     
+    
+    #Update options with user settings
+    options = reconstruct(def_options,kwargs)                   
+
     #Make sure the correct options for smoothing is used
     @assert ((options.smooth == false) || (options.smooth == :variable) || 
      (options.smooth == :single) || (options.smooth == :single_user)) "Not supported option for smooth"
@@ -34,7 +47,11 @@ function _update_options(search_range;kwargs...)
 end
 
 
-function _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens)
+function _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens,trace)
+   
+    #Printing of creation
+    trace && _LHC_trace()
+
     unscaled_plan = LHCoptim(num_start_samples,length(search_range),sampling_plan_opt_gens)[1]'
 
     plan = Array{eltype(eltype(search_range))}(undef,size(unscaled_plan))
@@ -42,6 +59,10 @@ function _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gen
         plan[i,:] = _scale(unscaled_plan[i,:],sr[1],sr[2])
     end
     return plan
+end
+
+function _LHC_trace()
+    println("Creating optimized Latin Hypercube Sampling Plan ... \n")
 end
 
 
