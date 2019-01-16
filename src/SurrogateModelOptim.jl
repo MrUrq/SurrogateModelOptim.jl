@@ -99,15 +99,15 @@ include("search_range.jl")
 
 
 #TODO
-#####Tracing - Handle in nice way with option :verbose or :silent
 #####Remove outliers from std infill. Gather statistics on this if it should be used
 #####PlotlyJS parallel coordinates
 #####Ability to retain sm params. Do this with an option or result type
-#####Options for infill
 #####Gather statistics, rippa or not? Then multiple regression points or not?
 #####Fancy results printing
 #####Show accuracy as a function of "time" predicted and actual
 #####Integer test case
+#####Go through test cases find max, min, range §and create a type that holds all the info
+
 #####Statistics, infill criteria, choose different. Recursive criteria, like every other is distance and every other is min?
 #####Statistics, infill criteria of min-std and min. Always take min and find min-std with the greatest distance from min.
 #####keep adding N number of such points.
@@ -125,6 +125,7 @@ include("search_range.jl")
     #Pareto front type of infill? 
     #How to define the distance between samples of a pareto front?
     #New designs.
+    #Pareto distance function to be easy to include
     #1. Pure Exploration of design space. 
 #Done   #1. Infill distance, find largest empty space - GA to find this, KD-tree to increase speed
         #2. Think of dimension scaling. Not possible with several interpolants?

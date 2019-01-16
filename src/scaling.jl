@@ -38,11 +38,25 @@ function preprocess_point(points,optres;base_scale::Array{Float64,2})
     old_max = maximum(base_scale,dims=2)
 
     preprocessed_point = similar(points)
+
     for i = 1:size(preprocessed_point,1)
         preprocessed_point[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
         old_min = old_min[i], old_max = old_max[i])
     end
     return preprocessed_point
+end
+
+function preprocess_point!(preprocessed_point,points,optres;old_min::Array{Float64,2},old_max::Array{Float64,2})
+
+    for i = 1:size(preprocessed_point,1)
+        preprocessed_point[i,:] = _scale(points[i,:],-1.0*optres.scaling[i],1.0*optres.scaling[i],
+        old_min = old_min[i], old_max = old_max[i])
+    end
+    return preprocessed_point
+end
+
+function preprocess_point!(preprocessed_point,points,optres::SurrogateModelOptim.RBFHypers{Bool,U};old_min::Array{Float64,2},old_max::Array{Float64,2}) where U
+    preprocessed_point = points
 end
 
 function preprocess_point(points,optres::SurrogateModelOptim.RBFHypers{Bool,U};base_scale::Array{Float64,2}) where U

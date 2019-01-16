@@ -98,19 +98,29 @@ function surrogate_model(samples, plan, options)
                              observations, smooth=optres[i].smooth)
     end
 
-    sm_func = function (res,estimation_point)        
+    #Pre allocate and calculate to reduce cost of evaluating surrogate model.
+    preprocessed_est_point = Array{Float64,2}(undef,size(plan,1),1)
+    old_min = minimum(plan,dims=2)
+    old_max = maximum(plan,dims=2)
 
-        for i = 1:num_interpolants
-            preprocessed_est_point = preprocess_point(estimation_point,optres[i],base_scale=plan)
-
-            #Evaluate the interpolation object
-            res[i] = ScatteredInterpolation.evaluate(itp[i], preprocessed_est_point)[1]
-        end
-        return SurrogateEstimate(res)        
-    end
+    sm_func = (estimation_point) ->  SurrogateEstimate(surrogate_evaluate.(Ref(preprocessed_est_point),
+                                        Ref(estimation_point),Tuple(itp),Tuple(optres),
+                                        Ref(old_min),Ref(old_max)))
 
     return sm_func, optres
 end
+
+function surrogate_evaluate(preprocessed_est_point,estimation_point,itp,optres,old_min,old_max)
+    preprocessed_est_point = preprocess_point!( preprocessed_est_point,
+                                                estimation_point, optres;
+                                                old_min=old_min,
+                                                old_max=old_max,
+                                                )
+    
+    #Evaluate the interpolation object
+    res = ScatteredInterpolation.evaluate(itp, preprocessed_est_point)[1]
+end
+
 
 
 

@@ -20,6 +20,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
 
     #Initialize values to be returned
     sm_interpolant = nothing; infill_type = nothing; infill_prediction = nothing
+    optres = nothing
     infill_plan = Array{Float64}(undef,size(plan,1),0)
     infill_sample = Array{Float64}(undef,1,0)
 
@@ -35,7 +36,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
         plan_all = [plan infill_plan]
-        sm_interpolant, _ = surrogate_model(samples_all, plan_all, options)
+        sm_interpolant, optres = surrogate_model(samples_all, plan_all, options)
         
         #Points to add to the sampling plan to improve the interpolant
         infill_plan_new, criteria, infill_type_new, infill_prediction_new  = model_infill(plan_all,samples_all,sm_interpolant,criteria,options)
@@ -51,7 +52,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
 
     end   
     
-    return lhc_samples, plan, sm_interpolant, infill_sample, infill_type, infill_plan, infill_prediction
+    return lhc_samples, plan, sm_interpolant, optres, infill_sample, infill_type, infill_plan, infill_prediction
 end
 
 
@@ -64,26 +65,29 @@ function f_opt_eval(f,plan,samples,trace)
     new_samples = mapslices(f,plan,dims=1) 
 
     if trace
+        _, min_loc = findmin(new_samples)
         for i = 1:size(plan,2)
-            printstyled(@sprintf("%-15.05f",new_samples[i]); color=:light_green, bold=true)
+            if i == min_loc[2]
+                printstyled(@sprintf("%-15.7g",new_samples[i]); color=:light_green, bold=true)
+            else
+                printstyled(@sprintf("%-15.7g",new_samples[i]))
+            end
         end
         print("\t actual value\n")
-        println("----------------------------------------------")
-    end
+        println("---------------------------------------------------------------")
 
-    if trace
         new_min = minimum(new_samples)
         old_min = minimum(samples)
         new_max = maximum(new_samples)
         old_max = maximum(samples)
 
         print("Max and min sample value: ")
-        printstyled(@sprintf("%.05f",maximum((new_max,old_max))); color=:light_red)
+        printstyled(@sprintf("%.7g",maximum((new_max,old_max))); color=:light_red)
         print("\t")
-        printstyled(@sprintf("%.05f",minimum((new_min,old_min))); color=:green, bold=true)
+        printstyled(@sprintf("%.7g",minimum((new_min,old_min))); color=:green, bold=true)
 
         if isless(new_min,old_min)
-            print("\t (Improvement from last iteration ", @sprintf("%.05f",old_min-new_min),")")
+            print("\t (Improvement from last iteration ", @sprintf("%.7g",old_min-new_min),")")
         else
             print("\t (Improvement from last iteration N/A)")
         end
@@ -107,9 +111,9 @@ function f_opt_eval(f,plan,trace)
 
 
         print("Max and min sample value: ")
-        printstyled(@sprintf("%.05f",new_max); color=:light_red)
+        printstyled(@sprintf("%.7g",new_max); color=:light_red)
         print("\t")
-        printstyled(@sprintf("%.05f",new_min); color=:light_green, bold=true)
+        printstyled(@sprintf("%.7g",new_min); color=:light_green, bold=true)
         print("\n")
     end
 
