@@ -17,7 +17,7 @@
     min_scale::Float64 = 1e-4
     num_interpolants::Int = 1
     smooth = false
-    max_smooth::Float64 = 0.1
+    max_smooth::Float64 = 1.0
     smooth_user::Float64 = 0.0
     iterations::Int64 = 10
     num_infill_points::Int64 = 1

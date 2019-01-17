@@ -46,14 +46,15 @@ res1 = smoptimize(f, [(-5.0,5.0),(-5.0,5.0)],
                                     num_start_samples=10,
                                     sampling_plan_opt_gens=100_000,
                                     rbf_opt_gens=30_000,
-                                    infill_iterations = 10_000,
+                                    infill_iterations = 25_000,
                                     variable_kernel_width = true,
                                     variable_dim_scaling = true,
-                                    num_infill_points = 1,
-                                    iterations = 10,
-                                    infill_funcs = [:min,:min,:min_2std],
+                                    num_infill_points = 4,
+                                    iterations = 15,
+                                    max_smooth = 100.0,
+                                    infill_funcs = [:median,:med_2std,:std,:dist],
                                     smooth = :single,
-                                    ));display(funcplotX(x->median(res1[3](x))[1],-5,5,-5,5))
+                                    ));display(funcplotX(x->median(res1[3](x)),-5,5,-5,5))
 
 
 
@@ -67,9 +68,9 @@ res2 = smoptimize(x->(f(x)-noiselevel/2+noiselevel*rand(MersenneTwister(abs(sum(
                                     variable_dim_scaling = true,
                                     num_infill_points = 1,
                                     iterations = 10,
-                                    infill_funcs = [:min,:min,:min_2std],
+                                    infill_funcs = [:median,:median,:med_2std],
                                     smooth = :single,
-                                    ));display(funcplotX(x->median(res2[3](x))[1],-5,5,-5,5))
+                                    ));display(funcplotX(x->median(res2[3](x)),-5,5,-5,5))
                            
-return res1, res2
+return res1, res2;
 

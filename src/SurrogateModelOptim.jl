@@ -99,38 +99,41 @@ include("search_range.jl")
 
 
 #TODO
-#####Remove outliers from std infill. Gather statistics on this if it should be used
-#####PlotlyJS parallel coordinates
-#####Ability to retain sm params. Do this with an option or result type
-#####Gather statistics, rippa or not? Then multiple regression points or not?
-#####Fancy results printing
-#####Show accuracy as a function of "time" predicted and actual
-#####Integer test case
-#####Go through test cases find max, min, range §and create a type that holds all the info
 
-#####Statistics, infill criteria, choose different. Recursive criteria, like every other is distance and every other is min?
-#####Statistics, infill criteria of min-std and min. Always take min and find min-std with the greatest distance from min.
-#####keep adding N number of such points.
+#####Fix minimum infill, should be median
+
 #####Result type containing
         # Original samples
         # Infill points
         # Smallest evaluated function value per iteration
         # Options?
         # Num iterations
-        # ?
+        # Interpolant hypers
+#####Fancy results printing
+
+#####Go through test functions find max, min, range §and create a type that holds all the info
+
+#####Gather statistics, rippa or not? 
+#####Multiple regression points or not?
+
+#####PlotlyJS parallel coordinates
+#####Plot accuracy as a function of "time" predicted and actual
+
+#####Performance of several infill points at once vs one at the time?
+
+#####Outlier removal z from std infill. Gather statistics on this if it should be used
+#####Statistics, infill criteria, choose different. Recursive criteria, like every other is distance and every other is min?
+#####Statistics, infill criteria of min-std and min. Always take min and find min-std with the greatest distance from min.
 
 #####Infill
-    #Verify that the infill works as expected with small test function
-    #Handle several infill methods
-    #Pareto front type of infill? 
-    #How to define the distance between samples of a pareto front?
-    #New designs.
-    #Pareto distance function to be easy to include
+    #Verify that the infill works as expected with small test function. 
+    #Plot it and show the where the points are added after each iteration
+    #Pareto front infill option possibly?
+    
     #1. Pure Exploration of design space. 
 #Done   #1. Infill distance, find largest empty space - GA to find this, KD-tree to increase speed
-        #2. Think of dimension scaling. Not possible with several interpolants?
+        #2. Think of dimension scaling. Not possible with several interpolants?   - Outside of project scope
 #Done   #3. Find maximum STD
-        #4. Large gradient
     #2. Pure Exploitation
 #Done   #1. Take overall min prediction
 #Done   #2. Take min median prediction
@@ -141,7 +144,7 @@ include("search_range.jl")
         #4. min(Median prediction - xSTD) where X is the smallest value achieving distance
         #   >= c from any other point
 
-            
+#####Integer test case
         
 
 end # module

@@ -42,6 +42,13 @@ end
 
 function minimum_infill(sm_interpolant)
     function (x)    
+        out = minimum(sm_interpolant(x))
+        return minimum((1e10,out))
+    end
+end
+
+function median_infill(sm_interpolant)
+    function (x)    
         out = median(sm_interpolant(x))
         return minimum((1e10,out))
     end
@@ -54,7 +61,7 @@ function std_infill(sm_interpolant)
     end
 end
 
-function min_std_infill(c,sm_interpolant)
+function med_std_infill(c,sm_interpolant)
     function (x)
         ret = sm_interpolant(x)
         out = median(ret)-c*std(ret)
@@ -63,7 +70,7 @@ function min_std_infill(c,sm_interpolant)
     end
 end
 
-function min_std_zscore_infill(c,sm_interpolant)
+function med_std_zscore_infill(c,sm_interpolant)
     function (x)
         y = sm_interpolant(x).sm_estimate
 
@@ -86,10 +93,11 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     
     #Infill function options
     min_infill_fun = minimum_infill(sm_interpolant)
-    min_std_infill_fun = min_std_infill(2,sm_interpolant)
+    median_infill_fun = median_infill(sm_interpolant)
+    med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)     
-    min_std_infill_zscore_fun = min_std_zscore_infill(1,sm_interpolant) 
+    med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
     
     #The search takes places in the design space
     sr = vcat(extrema(plan,dims = 2)...)
@@ -98,10 +106,11 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     call(f, x) = f(x)
     library = Dict(
         :min => x -> min_infill_fun(x),
-        :min_2std => x -> min_std_infill_fun(x),
+        :median => x -> median_infill_fun(x),
+        :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
         :std => x -> std_infill_fun(x),
-        :min_std_z => x -> min_std_infill_zscore_fun(x),
+        :med_std_z => x -> min_std_infill_zscore_fun(x),
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
