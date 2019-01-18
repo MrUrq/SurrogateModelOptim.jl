@@ -10,6 +10,10 @@ function std(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
     std(res.sm_estimate)
 end
 
+function confint(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
+    confint(OneSampleTTest(res.sm_estimate))
+end
+
 function median(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
     median(res.sm_estimate)
 end
@@ -70,6 +74,18 @@ function med_std_infill(c,sm_interpolant)
     end
 end
 
+function confint_infill(sm_interpolant)
+    function (x)
+        ret = sm_interpolant(x)
+
+        f_mean = mean(ret.sm_estimate)
+
+        out = f_mean - 1.96*std(ret.sm_estimate; mean = f_mean)/sqrt(length(ret.sm_estimate))
+
+        return minimum((1e10,out))
+    end
+end
+
 function med_std_zscore_infill(c,sm_interpolant)
     function (x)
         y = sm_interpolant(x).sm_estimate
@@ -96,7 +112,8 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     median_infill_fun = median_infill(sm_interpolant)
     med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
-    std_infill_fun = std_infill(sm_interpolant)     
+    std_infill_fun = std_infill(sm_interpolant)  
+    confint_infill_fun = confint_infill(sm_interpolant)         
     med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
     
     #The search takes places in the design space
@@ -111,6 +128,7 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
         :dist => x -> dist_infill_fun(x),
         :std => x -> std_infill_fun(x),
         :med_std_z => x -> min_std_infill_zscore_fun(x),
+        :confint => x -> confint_infill_fun(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
@@ -125,15 +143,27 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     j = 0
     res_bboptim = nothing
     while infill_incomplete && j < 51
-        try 
-            res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
-                    FitnessScheme=ParetoFitnessScheme{num_infill_obj_funs}(is_minimizing=true),
-                    SearchRange=sr, ϵ=0.00001,
-                    MaxFuncEvals=infill_iterations,
-                    MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
-            infill_incomplete = false
-        catch
-            j += 1 
+        if num_infill_obj_funs != 1
+            try 
+                res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
+                        FitnessScheme=ParetoFitnessScheme{num_infill_obj_funs}(is_minimizing=true),
+                        SearchRange=sr, ϵ=0.00001,
+                        MaxFuncEvals=infill_iterations,
+                        MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
+                infill_incomplete = false
+            catch
+                j += 1 
+            end
+        else
+            try 
+                res_bboptim = bboptimize(infill_obj_fun;
+                        SearchRange=sr,
+                        MaxFuncEvals=infill_iterations,
+                        MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
+                infill_incomplete = false
+            catch
+                j += 1 
+            end
         end
     end
     
@@ -211,7 +241,6 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
         end
 
         if !any(c->view(infill_plan,:,c)==vec(v),1:size(infill_plan,2)) & !any(c->view(plan,:,c)==vec(v),1:size(infill_plan,2))
-            println("added rand added rand added rand added rand added rand added rand added rand added rand ")
             push!(infill_prediction,median(sm_interpolant(vec(v))))
             infill_plan = [infill_plan v]
             push!(infill_type,:rand)

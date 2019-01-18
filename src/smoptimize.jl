@@ -12,17 +12,19 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
             iterations, trace = options
     
     #Create sampling plan
-    plan = _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens,trace)
+    lhc_plan = _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens,trace)
     
     #Evaluate sampling plan
-    lhc_samples = f_opt_eval(f,plan,trace)
+    lhc_samples = f_opt_eval(f,lhc_plan,trace)
     criteria = 1
 
-    #Initialize values to be returned
-    sm_interpolant = nothing; infill_type = nothing; infill_prediction = nothing
+    #Initialize variables to be returned
+    sm_interpolant = nothing
+    infill_type = Array{Symbol,1}(undef,0)
+    infill_prediction = Array{Float64,1}(undef,0)
     optres = nothing
-    infill_plan = Array{Float64}(undef,size(plan,1),0)
-    infill_sample = Array{Float64}(undef,1,0)
+    infill_plan = Array{Float64,2}(undef,size(lhc_plan,1),0)
+    infill_sample = Array{Float64,2}(undef,1,0)
 
     #Run the optimization iterations number of times
     for i = 1:iterations
@@ -35,7 +37,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
 
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
-        plan_all = [plan infill_plan]
+        plan_all = [lhc_plan infill_plan]
         sm_interpolant, optres = surrogate_model(samples_all, plan_all, options)
         
         #Points to add to the sampling plan to improve the interpolant
@@ -52,7 +54,9 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
 
     end   
     
-    return lhc_samples, plan, sm_interpolant, optres, infill_sample, infill_type, infill_plan, infill_prediction
+    return SurrogateResult( lhc_samples, lhc_plan, sm_interpolant,
+                            optres, infill_sample, infill_type,
+                            infill_plan, infill_prediction,options)
 end
 
 
@@ -120,31 +124,3 @@ function f_opt_eval(f,plan,trace)
     return new_samples
 end
 
-
-function compare_de_to_surrogate()
-    sol_hist_fitness = Array{Float64,1}()
-    sol_hist_iteration = Array{Int64,1}()
-    f_c = function (oc)
-        push!(sol_hist_fitness, best_fitness(oc))
-        push!(sol_hist_iteration, BlackBoxOptim.num_func_evals(oc))
-    end        
-
-    res = bboptimize(f; SearchRange=search_range,
-                        PopulationSize=num_start_samples, MaxFuncEvals=100000,
-                        CallbackFunction = f_c,CallbackInterval = eps(), 
-                        TraceMode = :silent);
-    
-    equal_iterations_ind = findfirst(x-> x >= length(samples),sol_hist_iteration)
-    equal_iterations_fitness = sol_hist_fitness[equal_iterations_ind]
-
-    iterations_ind_for_equal_performance = findfirst(x-> x <= minimum(samples),sol_hist_fitness)
-    if iterations_ind_for_equal_performance == nothing
-        iterations_for_equal_performance = Inf
-    else    
-        iterations_for_equal_performance = sol_hist_iteration[iterations_ind_for_equal_performance]
-    end
-
-    println("Function evaluations, ", length(samples), ".  Best DE = ", repr(equal_iterations_fitness), ". Best surrogate = ", minimum(samples))
-    println("DE iterations for >= performance = ", repr(iterations_for_equal_performance), ".")
-    println("Performance increase = ", repr(round(iterations_for_equal_performance/length(samples); digits=2)), ".")
-end

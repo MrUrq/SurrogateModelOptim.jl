@@ -1,0 +1,39 @@
+===============================================================================
+EXTENSION NAME : linecount
+EXTENSION VERSION : 0.1.7
+-------------------------------------------------------------------------------
+count time : 2019-01-18 09:23:02
+count workspace : /home/urquhart/.julia/dev/SurrogateModelOptim
+total files : 27
+total code lines : 1435
+total comment lines : 9
+total blank lines : 374
+
+.appveyor.yml, code is 31, comment is 1, blank is 0.
+.gitignore, code is 6, comment is 0, blank is 0.
+.travis.yml, code is 18, comment is 1, blank is 0.
+docs/make.jl, code is 19, comment is 0, blank is 2.
+docs/src/index.md, code is 6, comment is 0, blank is 2.
+experiments/compare_optim.jl, code is 38, comment is 0, blank is 9.
+experiments/hart6.jl, code is 22, comment is 0, blank is 4.
+experiments/performancetest.jl, code is 15, comment is 0, blank is 2.
+experiments/smoothtest.jl, code is 15, comment is 0, blank is 5.
+experiments/SurrogatePGFPlotsX.jl, code is 15, comment is 0, blank is 3.
+experiments/SurrogatePlotlyJS.jl, code is 41, comment is 0, blank is 19.
+LICENSE, code is 16, comment is 0, blank is 3.
+Manifest.toml, code is 203, comment is 0, blank is 51.
+Project.toml, code is 21, comment is 0, blank is 3.
+README.md, code is 8, comment is 7, blank is 1.
+REQUIRE, code is 1, comment is 0, blank is 0.
+src/interface.jl, code is 29, comment is 0, blank is 16.
+src/rbf_hypers_opt.jl, code is 57, comment is 0, blank is 27.
+src/rbf_hypers_opt_utilities.jl, code is 95, comment is 0, blank is 38.
+src/sample_infill.jl, code is 84, comment is 0, blank is 13.
+src/scaling.jl, code is 32, comment is 0, blank is 17.
+src/search_range.jl, code is 81, comment is 0, blank is 22.
+src/smoptimize.jl, code is 91, comment is 0, blank is 31.
+src/SurrogateModelOptim.jl, code is 75, comment is 0, blank is 22.
+src/test_functions.jl, code is 343, comment is 0, blank is 67.
+src/types.jl, code is 53, comment is 0, blank is 14.
+test/runtests.jl, code is 20, comment is 0, blank is 3.
+===============================================================================

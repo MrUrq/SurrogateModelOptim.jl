@@ -36,41 +36,43 @@ function funcplotX(fun,xmin,xmax,ymin,ymax)
     return ax
 end
 
-f = rosenbrock2d
+
+
+f = SurrogateModelOptim.test_funs[:rosenbrock_2D].fun
 noiselevel = 10e4*0.06
 #rotatedHyperElipsoid
 #styblinskiTang
 
 res1 = smoptimize(f, [(-5.0,5.0),(-5.0,5.0)],
         SurrogateModelOptim.options(num_interpolants=20,
-                                    num_start_samples=10,
+                                    num_start_samples=5,
                                     sampling_plan_opt_gens=100_000,
                                     rbf_opt_gens=30_000,
                                     infill_iterations = 25_000,
                                     variable_kernel_width = true,
                                     variable_dim_scaling = true,
-                                    num_infill_points = 4,
-                                    iterations = 15,
-                                    max_smooth = 100.0,
-                                    infill_funcs = [:median,:med_2std,:std,:dist],
-                                    smooth = :single,
-                                    ));display(funcplotX(x->median(res1[3](x)),-5,5,-5,5))
-
-
-
-res2 = smoptimize(x->(f(x)-noiselevel/2+noiselevel*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
-        SurrogateModelOptim.options(num_interpolants=20,
-                                    num_start_samples=10,
-                                    sampling_plan_opt_gens=100_000,
-                                    rbf_opt_gens=30_000,
-                                    infill_iterations = 10_000,
-                                    variable_kernel_width = true,
-                                    variable_dim_scaling = true,
                                     num_infill_points = 1,
-                                    iterations = 10,
-                                    infill_funcs = [:median,:median,:med_2std],
+                                    iterations = 20,
+                                    max_smooth = 100.0,
+                                    infill_funcs = [:median,:confint,:median,:confint],
                                     smooth = :single,
-                                    ));display(funcplotX(x->median(res2[3](x)),-5,5,-5,5))
+                                    ));display(funcplotX(x->median(res1.sm_interpolant(x)),-5,5,-5,5))
+return res1
+
+
+# res2 = smoptimize(x->(f(x)-noiselevel/2+noiselevel*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))), [(-5.0,5.0),(-5.0,5.0)],
+#         SurrogateModelOptim.options(num_interpolants=20,
+#                                     num_start_samples=10,
+#                                     sampling_plan_opt_gens=100_000,
+#                                     rbf_opt_gens=30_000,
+#                                     infill_iterations = 10_000,
+#                                     variable_kernel_width = true,
+#                                     variable_dim_scaling = true,
+#                                     num_infill_points = 1,
+#                                     iterations = 10,
+#                                     infill_funcs = [:median,:median,:med_2std],
+#                                     smooth = :single,
+#                                     ));display(funcplotX(x->median(res2[3](x)),-5,5,-5,5))
                            
-return res1, res2;
+# return res1, res2;
 

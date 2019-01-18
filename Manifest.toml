@@ -21,7 +21,7 @@ version = "0.5.3"
 
 [[BlackBoxOptim]]
 deps = ["CPUTime", "Compat", "Distributed", "Distributions", "LinearAlgebra", "Logging", "Pkg", "Printf", "Random", "SHA", "Serialization", "SpatialIndexing", "Statistics", "StatsBase", "Test"]
-git-tree-sha1 = "7c796571410bf9597b4b7075e382c0817874b977"
+git-tree-sha1 = "2a236dcc0a29ebdc997ae443e36d585cf3edc4fb"
 repo-rev = "master"
 repo-url = "https://github.com/robertfeldt/BlackBoxOptim.jl.git"
 uuid = "a134a8b2-14d6-55f6-9291-3336d3ab0209"
@@ -74,6 +74,12 @@ deps = ["Distributed", "LinearAlgebra", "PDMats", "Printf", "QuadGK", "Random", 
 git-tree-sha1 = "c24e9b6500c037673f0241a2783472b8c3d080c7"
 uuid = "31c24e10-a181-5473-b8eb-7969acd0382f"
 version = "0.16.4"
+
+[[HypothesisTests]]
+deps = ["Combinatorics", "Distributions", "LinearAlgebra", "Random", "Rmath", "Roots", "Statistics", "StatsBase", "Test"]
+git-tree-sha1 = "0fe2b78bd7cadcaed2071aab7ed12b40d220c392"
+uuid = "09f84164-cd44-5f33-b23f-e6b0d136a0d5"
+version = "0.8.0"
 
 [[InteractiveUtils]]
 deps = ["LinearAlgebra", "Markdown"]
@@ -168,6 +174,12 @@ deps = ["BinaryProvider", "Libdl", "Random", "Statistics", "Test"]
 git-tree-sha1 = "9a6c758cdf73036c3239b0afbea790def1dabff9"
 uuid = "79098fc4-a85e-5d69-aa6a-4863f24498fa"
 version = "0.5.0"
+
+[[Roots]]
+deps = ["Compat", "Printf"]
+git-tree-sha1 = "2e7171b6f3b58b81201ba37d9e1220aff6d904a1"
+uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
+version = "0.7.4"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"

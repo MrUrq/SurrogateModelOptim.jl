@@ -1,3 +1,8 @@
+"""
+    Options
+
+Options configurable by the user with recommended default values.
+"""
 @with_kw struct Options
     num_start_samples::Int = 10
     trace::Bool = true
@@ -29,7 +34,7 @@ end
 """
     RBFHypers(width::S,kernelFunc,scaling::U,fitness::Float64)
 
-Datastructure to store results from the optimisation of an RBF interpolation kernel
+Data structure to store results from the optimisation of an RBF interpolation kernel
 """
 struct RBFHypers{T,U}
     kernelFunc
@@ -37,7 +42,46 @@ struct RBFHypers{T,U}
     smooth::U
 end
 
+"""
+    SurrogateEstimate{T}
 
+Data structure used to overload common functions such as minimum. 
+"""
 struct SurrogateEstimate{T}
     sm_estimate::T
 end
+
+
+"""
+    SurrogateResult
+
+Data structure to store the results of an optimization task. 
+"""
+struct SurrogateResult
+    lhc_samples::Array{Float64,2}
+    lhc_plan::Array{Float64,2}
+    sm_interpolant
+    sm_interpolant_settings::Array{SurrogateModelOptim.RBFHypers{T,U},1} where U where T
+    infill_samples::Array{Float64,2}
+    infill_type::Array{Symbol,1}
+    infill_plan::Array{Float64,2}
+    infill_prediction::Array{Float64,1}
+    options::Options
+end
+
+
+"""
+    TestFunction
+
+Data structure to store test functions.
+"""
+@with_kw struct TestFunction
+    fun
+    sr::Array{Tuple{Float64,Float64},1}
+    min_val::Float64
+    min_loc::Array{Float64,2}
+    max_val::Float64
+    max_loc::Array{Float64,2}
+end
+
+

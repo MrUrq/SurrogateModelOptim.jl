@@ -1,76 +1,14 @@
 module SurrogateModelOptim
 
 export  smoptimize,
-        rosenbrock2d,
-        rotatedHyperElipsoid,
-        styblinskiTang,
-        hart6,
-        minimum,
-        maximum,
-        std,
-        median,
-        mean,
-        model_infill
-
-function rosenbrock2d(x)
-    return (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
-end
-function rotatedHyperElipsoid(x)
-    out = 0.0
-    xy = [x[1],x[2]]
-    for i = 1:2
-        inner = 0.0
-        for j = 1:i
-            inner = inner + xy[j]^2
-        end
-        out += inner
-    end
-    return out
-end
-function styblinskiTang(x)
-    out = 0.0    
-    xy = [x[1],x[2]]
-    for i = 1:2
-        out += xy[i]^4 - 16*xy[i]^2 + 5*xy[i]
-    end
-    out *= 0.5
-    return out
-end
-
-
-
-function hart6(x)    
-    alpha = [1.0 1.2 3.0 3.2]
-    A = [10 3 17 3.5 1.7 8;
-         0.05 10 17 0.1 8 14;
-         3 3.5 1.7 10 17 8;
-         17 8 0.05 10 0.1 14];
-    P = 10^(-4) * [1312 1696 5569 124 8283 5886;
-                   2329 4135 8307 3736 1004 9991;
-                   2348 1451 3522 2883 3047 6650;
-                   4047 8828 8732 5743 1091 381]
-    
-    outer = 0
-    for ii = 1:4
-        inner = 0
-        for jj = 1:6
-            xj = x[jj]
-            Aij = A[ii, jj]
-            Pij = P[ii, jj]
-            inner = inner + Aij*(xj-Pij)^2
-        end
-        new = alpha[ii] * exp(-inner)
-        outer = outer + new
-    end
-    
-    y = -outer
-end
-
+        model_infill,
+        TestFunction
 
 
 using LatinHypercubeSampling
 using ScatteredInterpolation
 using BlackBoxOptim
+using HypothesisTests
 using Parameters
 using Distances
 using Statistics
@@ -87,6 +25,7 @@ import Base.maximum
 import Statistics.std
 import Statistics.median
 import Statistics.mean
+import HypothesisTests.confint
 
 include("types.jl")
 include("interface.jl")
@@ -96,11 +35,11 @@ include("sample_infill.jl")
 include("scaling.jl")
 include("smoptimize.jl")
 include("search_range.jl")
+include("test_functions.jl")
 
 
 #TODO
 
-#####Fix minimum infill, should be median
 
 #####Result type containing
         # Original samples
@@ -110,6 +49,15 @@ include("search_range.jl")
         # Num iterations
         # Interpolant hypers
 #####Fancy results printing
+#####Call the method with the results type already?
+
+#####Change distance to negative instead of 1/x? same with std?
+
+#####Try the updated BBoptim and answer github thingy
+
+#####Call the method with a test function + options shortcut
+
+#####Create plot of optim method vs optim method, shaded area thing. Simplex?
 
 #####Go through test functions find max, min, range §and create a type that holds all the info
 
@@ -145,6 +93,8 @@ include("search_range.jl")
         #   >= c from any other point
 
 #####Integer test case
-        
+#####Documentation
+#####Examples
+#####Function headers
 
 end # module

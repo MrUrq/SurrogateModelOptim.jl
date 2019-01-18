@@ -1,0 +1,179 @@
+{
+    "extension": "linecount",
+    "version": "0.1.7",
+    "workspace": "/home/urquhart/.julia/dev/SurrogateModelOptim",
+    "linecount": [
+        {
+            "version": "0.1.7",
+            "counttime": "2019-01-18 09:23:02",
+            "filesum": 27,
+            "codesum": 1435,
+            "commentsum": 9,
+            "blanksum": 374,
+            "filelist": [
+                {
+                    "blank": 0,
+                    "code": 31,
+                    "comment": 1,
+                    "filename": ".appveyor.yml"
+                },
+                {
+                    "blank": 0,
+                    "code": 6,
+                    "comment": 0,
+                    "filename": ".gitignore"
+                },
+                {
+                    "blank": 0,
+                    "code": 18,
+                    "comment": 1,
+                    "filename": ".travis.yml"
+                },
+                {
+                    "blank": 2,
+                    "code": 19,
+                    "comment": 0,
+                    "filename": "docs/make.jl"
+                },
+                {
+                    "blank": 2,
+                    "code": 6,
+                    "comment": 0,
+                    "filename": "docs/src/index.md"
+                },
+                {
+                    "blank": 9,
+                    "code": 38,
+                    "comment": 0,
+                    "filename": "experiments/compare_optim.jl"
+                },
+                {
+                    "blank": 4,
+                    "code": 22,
+                    "comment": 0,
+                    "filename": "experiments/hart6.jl"
+                },
+                {
+                    "blank": 2,
+                    "code": 15,
+                    "comment": 0,
+                    "filename": "experiments/performancetest.jl"
+                },
+                {
+                    "blank": 5,
+                    "code": 15,
+                    "comment": 0,
+                    "filename": "experiments/smoothtest.jl"
+                },
+                {
+                    "blank": 3,
+                    "code": 15,
+                    "comment": 0,
+                    "filename": "experiments/SurrogatePGFPlotsX.jl"
+                },
+                {
+                    "blank": 19,
+                    "code": 41,
+                    "comment": 0,
+                    "filename": "experiments/SurrogatePlotlyJS.jl"
+                },
+                {
+                    "blank": 3,
+                    "code": 16,
+                    "comment": 0,
+                    "filename": "LICENSE"
+                },
+                {
+                    "blank": 51,
+                    "code": 203,
+                    "comment": 0,
+                    "filename": "Manifest.toml"
+                },
+                {
+                    "blank": 3,
+                    "code": 21,
+                    "comment": 0,
+                    "filename": "Project.toml"
+                },
+                {
+                    "blank": 1,
+                    "code": 8,
+                    "comment": 7,
+                    "filename": "README.md"
+                },
+                {
+                    "blank": 0,
+                    "code": 1,
+                    "comment": 0,
+                    "filename": "REQUIRE"
+                },
+                {
+                    "blank": 16,
+                    "code": 29,
+                    "comment": 0,
+                    "filename": "src/interface.jl"
+                },
+                {
+                    "blank": 27,
+                    "code": 57,
+                    "comment": 0,
+                    "filename": "src/rbf_hypers_opt.jl"
+                },
+                {
+                    "blank": 38,
+                    "code": 95,
+                    "comment": 0,
+                    "filename": "src/rbf_hypers_opt_utilities.jl"
+                },
+                {
+                    "blank": 13,
+                    "code": 84,
+                    "comment": 0,
+                    "filename": "src/sample_infill.jl"
+                },
+                {
+                    "blank": 17,
+                    "code": 32,
+                    "comment": 0,
+                    "filename": "src/scaling.jl"
+                },
+                {
+                    "blank": 22,
+                    "code": 81,
+                    "comment": 0,
+                    "filename": "src/search_range.jl"
+                },
+                {
+                    "blank": 31,
+                    "code": 91,
+                    "comment": 0,
+                    "filename": "src/smoptimize.jl"
+                },
+                {
+                    "blank": 22,
+                    "code": 75,
+                    "comment": 0,
+                    "filename": "src/SurrogateModelOptim.jl"
+                },
+                {
+                    "blank": 67,
+                    "code": 343,
+                    "comment": 0,
+                    "filename": "src/test_functions.jl"
+                },
+                {
+                    "blank": 14,
+                    "code": 53,
+                    "comment": 0,
+                    "filename": "src/types.jl"
+                },
+                {
+                    "blank": 3,
+                    "code": 20,
+                    "comment": 0,
+                    "filename": "test/runtests.jl"
+                }
+            ]
+        }
+    ]
+}
