@@ -57,5 +57,4 @@ res1 = smoptimize(f, sr,
                                     #max_smooth = 100.0,	               
                                     infill_funcs = [:median,:med_2std,:std,:dist],	         
                                     smooth = :single,	                                   
-                                    ));display(funcplotX(x->median(res1[3](x)),-5,5,-5,5))
-                                    
+                                    ));display(funcplotX(x->median(res1.sm_interpolant(x)),-5,5,-5,5))
