@@ -31,6 +31,8 @@ function _scale(old_x::Array{T,2},direction::Int,new_min,new_max;old_min=minimum
     newX = mapslices(x -> _scale(x,new_min,new_max), old_x, dims=direction)
 end
 
+_scale(x::Missing,min_val,max_val;old_min,old_max) = missing
+
 
 function preprocess_point(points,optres;base_scale::Array{Float64,2})
 

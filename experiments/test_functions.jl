@@ -454,9 +454,12 @@ test_funs = Dict(
                                     max_val = 990396.0,
                                     max_loc = permutedims([-5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0]')),
     
-    
-    
-    
                                     );
 
     #plot_sm2D(f,sr)
+
+    # for (key,tf) in test_funs
+    #     if length(tf.sr) == 2
+    #         display(plot_sm2D(tf.fun,tf.sr,String(key)))
+    #     end
+    # end

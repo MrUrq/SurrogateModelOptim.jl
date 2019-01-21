@@ -8,7 +8,7 @@ export  smoptimize,
 using LatinHypercubeSampling
 using ScatteredInterpolation
 using BlackBoxOptim
-using HypothesisTests
+using Distributions
 using Parameters
 using Distances
 using Statistics
@@ -25,7 +25,6 @@ import Base.maximum
 import Statistics.std
 import Statistics.median
 import Statistics.mean
-import HypothesisTests.confint
 
 include("types.jl")
 include("interface.jl")
@@ -35,8 +34,6 @@ include("sample_infill.jl")
 include("scaling.jl")
 include("smoptimize.jl")
 include("search_range.jl")
-include("test_functions.jl")
-
 
 #TODO
 
@@ -58,6 +55,8 @@ include("test_functions.jl")
 #####Call the method with a test function + options shortcut
 
 #####Create plot of optim method vs optim method, shaded area thing. Simplex?
+
+#####Performance as a function of iteration number?
 
 #####Go through test functions find max, min, range §and create a type that holds all the info
 

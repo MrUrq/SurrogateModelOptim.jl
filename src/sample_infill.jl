@@ -10,10 +10,6 @@ function std(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
     std(res.sm_estimate)
 end
 
-function confint(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
-    confint(OneSampleTTest(res.sm_estimate))
-end
-
 function median(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
     median(res.sm_estimate)
 end
@@ -74,14 +70,19 @@ function med_std_infill(c,sm_interpolant)
     end
 end
 
-function confint_infill(sm_interpolant)
+function confint_infill(conf_level, sm_interpolant)
     function (x)
         ret = sm_interpolant(x)
+        d = ret.sm_estimate
 
-        f_mean = mean(ret.sm_estimate)
-
-        out = f_mean - 1.96*std(ret.sm_estimate; mean = f_mean)/sqrt(length(ret.sm_estimate))
-
+        l = length(d)
+        f_mean = mean(d)
+    
+        α = (1 - conf_level)
+        tstar = quantile(TDist(l-1), 1 - α/2)
+        SE = std(d; mean = f_mean)/sqrt(l)
+    
+        out = f_mean - tstar * SE
         return minimum((1e10,out))
     end
 end
@@ -113,7 +114,7 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
-    confint_infill_fun = confint_infill(sm_interpolant)         
+    confint_infill_fun = confint_infill(0.95, sm_interpolant)         
     med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
     
     #The search takes places in the design space
@@ -191,7 +192,7 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     for i in infill_obj_funs
         pf = pareto_frontier(res_bboptim)
         best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
-        bo1_solution = params(pf[idx_obj1]) # get the solution candidate itself... 
+        bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
 
         # Add the infill point if it does not exist in the plan or infill_plan
         v = copy(permutedims(bo1_solution'))        
@@ -213,9 +214,9 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
         dist_infill_fun = distance_infill([plan infill_plan],[samples infill_samples],sm_interpolant)  
         dist_obj = Inf
         par_f = pareto_frontier(res_bboptim)
-        best_add_infill_solution = params(par_f[1])
+        best_add_infill_solution = BlackBoxOptim.params(par_f[1])
         for pf in par_f
-            bo1_solution = params(pf) 
+            bo1_solution = BlackBoxOptim.params(pf) 
             if (cur_val = dist_infill_fun(bo1_solution)) < dist_obj
                 dist_obj = cur_val
                 best_add_infill_solution = copy(bo1_solution)                
