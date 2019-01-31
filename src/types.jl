@@ -26,6 +26,7 @@ Options configurable by the user with recommended default values.
     smooth_user::Float64 = 0.0
     iterations::Int64 = 10
     num_infill_points::Int64 = 1
+    parallel_surrogate::Bool = true
     infill_funcs::Array{Symbol,1} = [:min,:min_2std,:std,:dist]
     infill_iterations::Int64 = 200_000
 end

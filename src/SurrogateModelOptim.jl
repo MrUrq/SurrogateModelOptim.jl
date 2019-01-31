@@ -38,39 +38,29 @@ include("search_range.jl")
 #TODO
 
 
-#####Result type containing
-        # Original samples
-        # Infill points
-        # Smallest evaluated function value per iteration
-        # Options?
-        # Num iterations
-        # Interpolant hypers
+
 #####Fancy results printing
 #####Call the method with the results type already?
 
 #####Change distance to negative instead of 1/x? same with std?
 
-#####Try the updated BBoptim and answer github thingy
+#####Does std samples, possibly constrain the deviation in other locations? Fit an elephant, put in paper.
 
 #####Call the method with a test function + options shortcut
 
-#####Create plot of optim method vs optim method, shaded area thing. Simplex?
+#####Create plot of optim method vs optim method, shaded area thing. 
 
-#####Performance as a function of iteration number?
+#####Find which parameters to use when optimizing, which infills? how many interpolants? rippa? 
+#####Use std and min
+#####Find which of the interpolants to use, A,B,C or D? Dependent on problem? Rosen2 hart6? Initial vs final convergence? How does this work with integer test case?
 
-#####Go through test functions find max, min, range §and create a type that holds all the info
-
-#####Gather statistics, rippa or not? 
-#####Multiple regression points or not?
 
 #####PlotlyJS parallel coordinates
 #####Plot accuracy as a function of "time" predicted and actual
 
 #####Performance of several infill points at once vs one at the time?
 
-#####Outlier removal z from std infill. Gather statistics on this if it should be used
-#####Statistics, infill criteria, choose different. Recursive criteria, like every other is distance and every other is min?
-#####Statistics, infill criteria of min-std and min. Always take min and find min-std with the greatest distance from min.
+
 
 #####Infill
     #Verify that the infill works as expected with small test function. 

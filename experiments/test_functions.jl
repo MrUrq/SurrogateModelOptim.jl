@@ -458,6 +458,74 @@ test_funs = Dict(
 
     #plot_sm2D(f,sr)
 
+
+    test_funs_paper = Dict(   
+
+    :styblinskiTang_2D => TestFunction( fun = styblinskiTang_2D,
+                                    sr = [(-5.0, 5.0), (-5.0, 5.0)],
+                                    min_val = -78.33233140754285,
+                                    min_loc = permutedims([-2.90353; -2.90353]'),
+                                    max_val = 250.0,
+                                    max_loc = permutedims([5.0; 5.0]')),  
+
+    :rastrigin_2D => TestFunction( fun = rastrigin_2D,
+                                    sr = [(-5.12, 5.12), (-5.12, 5.12)],
+                                    min_val = 0.0,
+                                    min_loc = permutedims([1.05917e-9; 1.72311e-9]'),
+                                    max_val = 80.70658038767792,
+                                    max_loc = permutedims([-4.52299; 4.52299]')),
+
+    :rosenbrock_2D => TestFunction( fun = rosenbrock_2D,
+                                    sr = [(-5.0,5.0),(-5.0,5.0)],
+                                    min_val = 0.0,
+                                    min_loc = permutedims([1.0; 1.0]'),
+                                    max_val = 90036.0,
+                                    max_loc = permutedims([-5.0; -5.0]')),
+
+    :beale_2D => TestFunction( fun = beale_2D,
+                                    sr = [(-4.5, 4.5), (-4.5, 4.5)],
+                                    min_val = 0.0,
+                                    min_loc = permutedims([3.0; -0.5]'),
+                                    max_val = 181853.61328125,
+                                    max_loc = permutedims([-4.5; -4.5]')),
+
+    :sphereFunction_2D => TestFunction( fun = sphereFunction_2D,
+                                    sr = [(-5.12, 5.12), (-5.12, 5.12)],
+                                    min_val = 0.0,
+                                    min_loc = permutedims([0.0; 0.0]'),
+                                    max_val = 52.4288,
+                                    max_loc = permutedims([5.12; 5.12]')),
+                                    
+    :permdbeta_2D => TestFunction( fun = permdbeta_2D,
+                                    sr = [(-2.0, 2.0), (-2.0, 2.0)],
+                                    min_val = 0.0,
+                                    min_loc = permutedims([1.0; 2.0]'),
+                                    max_val = 110.5,
+                                    max_loc = permutedims([-2.0; -2.0]')),
+                                    
+    :goldsteinPrice_2D => TestFunction( fun = goldsteinPrice_2D,
+                                    sr = [(-2.0, 2.0), (-2.0, 2.0)],
+                                    min_val = 3,
+                                    min_loc = permutedims([0; -1.0]'),
+                                    max_val = 1.0156902717980599e6,
+                                    max_loc = permutedims([-1.73737; 2.0]')),       
+                                    
+    :hart_6D => TestFunction( fun = hart_6D,
+                                    sr = [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0)],
+                                    min_val = -3.322368011415515,
+                                    min_loc = permutedims([0.20169; 0.150011; 0.476874; 0.275332; 0.311652; 0.657301]'),
+                                    max_val = -2.8124505439686604e-8,
+                                    max_loc = permutedims([1.0; 1.0; 3.13887e-17; 1.0; 1.0; 1.0]')),
+
+    :rosenbrock_12D => TestFunction( fun = rosenbrock_ND,
+                                    sr = [(-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0)],
+                                    min_val = 0.0,
+                                    min_loc = permutedims([1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0]'),
+                                    max_val = 990396.0,
+                                    max_loc = permutedims([-5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0]')),
+    
+                                    );
+
     # for (key,tf) in test_funs
     #     if length(tf.sr) == 2
     #         display(plot_sm2D(tf.fun,tf.sr,String(key)))

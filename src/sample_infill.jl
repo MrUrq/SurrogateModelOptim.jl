@@ -143,28 +143,17 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     infill_incomplete = true
     j = 0
     res_bboptim = nothing
+    
     while infill_incomplete && j < 51
-        if num_infill_obj_funs != 1
-            try 
-                res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
-                        FitnessScheme=ParetoFitnessScheme{num_infill_obj_funs}(is_minimizing=true),
-                        SearchRange=sr, ϵ=0.00001,
-                        MaxFuncEvals=infill_iterations,
-                        MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
-                infill_incomplete = false
-            catch
-                j += 1 
-            end
-        else
-            try 
-                res_bboptim = bboptimize(infill_obj_fun;
-                        SearchRange=sr,
-                        MaxFuncEvals=infill_iterations,
-                        MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
-                infill_incomplete = false
-            catch
-                j += 1 
-            end
+        try 
+            res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
+                    FitnessScheme=ParetoFitnessScheme{num_infill_obj_funs}(is_minimizing=true),
+                    SearchRange=sr, ϵ=0.00001,
+                    MaxFuncEvals=infill_iterations,
+                    MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
+            infill_incomplete = false
+        catch
+            j += 1 
         end
     end
     

@@ -75,15 +75,20 @@ end
 #Returns anonymous function that is an optimised RBF-based surrogate model
 function surrogate_model(samples, plan, options)
 
-    @unpack num_interpolants, trace = options
+    @unpack num_interpolants, trace, parallel_surrogate = options
 
     if trace
         println("Creating optimized surrogate model ...")
     end
     
     #Optimize RBF hypers for the ensamble of interpolants
-    optres = pmap(  (x)->rbf_hypers_opt(samples, plan, options), 
-                    1:num_interpolants)
+    if parallel_surrogate
+        optres = pmap(  (x)->rbf_hypers_opt(samples, plan, options), 
+                        1:num_interpolants)
+    else
+        optres = map(  (x)->rbf_hypers_opt(samples, plan, options), 
+                        1:num_interpolants)
+    end
 
     #Correct sample order
     observations = samples'

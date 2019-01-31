@@ -1,6 +1,6 @@
 using PGFPlotsX
 using Colors
-using ColorSchemes
+using ColorSchemes                                                                                          
 using Random
 using SurrogateModelOptim
 using ColorBrewer
