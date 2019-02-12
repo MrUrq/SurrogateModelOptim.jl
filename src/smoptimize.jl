@@ -1,11 +1,9 @@
 """
-    function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options=options())
+    function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options=Options())
 
-Optimize the function `f` in the range `search_range` using Radial Basis Function based surrogate model.
+Optimize the function `f` in the range `search_range` using a Radial Basis Function based surrogate model.
 """
-function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options=options())
-
-    options = _update_options(search_range;options...)
+function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options::Options=Options())
 
     #Load some optional argument values
     @unpack num_start_samples, sampling_plan_opt_gens,
@@ -65,9 +63,7 @@ end
 
 Optimize the function `f` in the range `search_range` using Radial Basis Function based surrogate model.
 """
-function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, plan::Array{Float64,2}, options=options())
-
-    options = _update_options(search_range;options...)
+function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, plan::Array{Float64,2}, options::Options=Options())
 
     #Load some optional argument values
     @unpack num_start_samples, 

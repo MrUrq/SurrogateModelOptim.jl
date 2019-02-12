@@ -1,3 +1,19 @@
+using Parameters
+
+"""
+    TestFunction
+
+Data structure to store test functions.
+"""
+@with_kw struct TestFunction
+    fun
+    sr::Array{Tuple{Float64,Float64},1}
+    min_val::Float64
+    min_loc::Array{Float64,2}
+    max_val::Float64
+    max_loc::Array{Float64,2}
+end
+
 function rosenbrock_2D(x)
     return (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
 end
@@ -171,30 +187,6 @@ function rastrigin_2D(x)
     out = 10*2 + sum
 end
 
-# function hart_3D(x)
-#     alpha = [1.0, 1.2, 3.0, 3.2]
-#     A = [3.0 10 30;
-#         0.1 10 35;
-#         3.0 10 3;
-#         0.1 10 35]
-
-#     P = 10^(-4) * [3689 1170 2673;
-#                 4699 4387 7470;
-#                 1091 8732 5547;
-#                 381 5743 8828]
-#     outer = 0;
-#     for ii = 1:4
-#         inner = 0;
-#         for jj = 1:3
-#             xj = x[jj]
-#             Aij = A[ii, jj]
-#             Pij = P[ii, jj]
-#             inner = inner + Aij*(xj-Pij)^2
-#         end
-#         outer += alpha[ii] * exp(-inner)
-#     end
-#     out = -outer
-# end
 function hart_4D(x)
 
     alpha = [1.0 1.2 3.0 3.2]
@@ -261,23 +253,7 @@ function rosenbrock_ND(x)
     out = sum
 end
 
-
-# using BlackBoxOptim
-# using SurrogateModelOptim
-# include("/home/urquhart/.julia/dev/SurrogateModelOptim/experiments/SurrogatePlotlyJS.jl")
-
-# f = hart_4D;
-# sr = [(0.0, 1.0),(0.0, 1.0),(0.0, 1.0),(0.0, 1.0)]
-
-# max_loc = permutedims(best_candidate(bboptimize(x->-f(x); SearchRange = sr, MaxTime = 10.0, MaxNumStepsWithoutFuncEvals = 1_000_000))');
-# max_val = f(max_loc);
-# min_loc = permutedims(best_candidate(bboptimize(x->f(x); SearchRange = sr, MaxTime = 10.0, MaxNumStepsWithoutFuncEvals = 1_000_000))');
-# min_val = f(min_loc);
-# @show sr;@show min_val;@show min_loc;@show max_val;@show max_loc;
-
-
-##### The maximums are approximate, found by BBoptim. The functions may have several optima, only one is stored.
-
+##### Note, the maximums are approximate. The functions may have several optima, only one is stored.
 test_funs = Dict(   
     :rosenbrock_2D => TestFunction( fun = rosenbrock_2D,
                                     sr = [(-5.0,5.0),(-5.0,5.0)],
@@ -455,79 +431,3 @@ test_funs = Dict(
                                     max_loc = permutedims([-5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0]')),
     
                                     );
-
-    #plot_sm2D(f,sr)
-
-
-    test_funs_paper = Dict(   
-
-    :styblinskiTang_2D => TestFunction( fun = styblinskiTang_2D,
-                                    sr = [(-5.0, 5.0), (-5.0, 5.0)],
-                                    min_val = -78.33233140754285,
-                                    min_loc = permutedims([-2.90353; -2.90353]'),
-                                    max_val = 250.0,
-                                    max_loc = permutedims([5.0; 5.0]')),  
-
-    :rastrigin_2D => TestFunction( fun = rastrigin_2D,
-                                    sr = [(-5.12, 5.12), (-5.12, 5.12)],
-                                    min_val = 0.0,
-                                    min_loc = permutedims([1.05917e-9; 1.72311e-9]'),
-                                    max_val = 80.70658038767792,
-                                    max_loc = permutedims([-4.52299; 4.52299]')),
-
-    :rosenbrock_2D => TestFunction( fun = rosenbrock_2D,
-                                    sr = [(-5.0,5.0),(-5.0,5.0)],
-                                    min_val = 0.0,
-                                    min_loc = permutedims([1.0; 1.0]'),
-                                    max_val = 90036.0,
-                                    max_loc = permutedims([-5.0; -5.0]')),
-
-    :beale_2D => TestFunction( fun = beale_2D,
-                                    sr = [(-4.5, 4.5), (-4.5, 4.5)],
-                                    min_val = 0.0,
-                                    min_loc = permutedims([3.0; -0.5]'),
-                                    max_val = 181853.61328125,
-                                    max_loc = permutedims([-4.5; -4.5]')),
-
-    :sphereFunction_2D => TestFunction( fun = sphereFunction_2D,
-                                    sr = [(-5.12, 5.12), (-5.12, 5.12)],
-                                    min_val = 0.0,
-                                    min_loc = permutedims([0.0; 0.0]'),
-                                    max_val = 52.4288,
-                                    max_loc = permutedims([5.12; 5.12]')),
-                                    
-    :permdbeta_2D => TestFunction( fun = permdbeta_2D,
-                                    sr = [(-2.0, 2.0), (-2.0, 2.0)],
-                                    min_val = 0.0,
-                                    min_loc = permutedims([1.0; 2.0]'),
-                                    max_val = 110.5,
-                                    max_loc = permutedims([-2.0; -2.0]')),
-                                    
-    :goldsteinPrice_2D => TestFunction( fun = goldsteinPrice_2D,
-                                    sr = [(-2.0, 2.0), (-2.0, 2.0)],
-                                    min_val = 3,
-                                    min_loc = permutedims([0; -1.0]'),
-                                    max_val = 1.0156902717980599e6,
-                                    max_loc = permutedims([-1.73737; 2.0]')),       
-                                    
-    :hart_6D => TestFunction( fun = hart_6D,
-                                    sr = [(0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0), (0.0, 1.0)],
-                                    min_val = -3.322368011415515,
-                                    min_loc = permutedims([0.20169; 0.150011; 0.476874; 0.275332; 0.311652; 0.657301]'),
-                                    max_val = -2.8124505439686604e-8,
-                                    max_loc = permutedims([1.0; 1.0; 3.13887e-17; 1.0; 1.0; 1.0]')),
-
-    :rosenbrock_12D => TestFunction( fun = rosenbrock_ND,
-                                    sr = [(-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0)],
-                                    min_val = 0.0,
-                                    min_loc = permutedims([1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0]'),
-                                    max_val = 990396.0,
-                                    max_loc = permutedims([-5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0]')),
-    
-                                    );
-
-    # for (key,tf) in test_funs
-    #     if length(tf.sr) == 2
-    #         display(plot_sm2D(tf.fun,tf.sr,String(key)))
-    #     end
-    # end

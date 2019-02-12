@@ -1,23 +1,3 @@
-function minimum(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
-    minimum(res.sm_estimate)
-end
-
-function maximum(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
-    maximum(res.sm_estimate)
-end
-
-function std(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
-    std(res.sm_estimate)
-end
-
-function median(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
-    median(res.sm_estimate)
-end
-
-function mean(res::SurrogateModelOptim.SurrogateEstimate{T}) where T
-    mean(res.sm_estimate)
-end
-
 function _nearest_point(kdtree,sm_interpolant,x)
     x = permutedims(x')
     v_tmp = [x; median(sm_interpolant(x))]
@@ -37,7 +17,7 @@ function distance_infill(plan,samples,sm_interpolant)
     #surrogate model at that point and checking the overall distance while 
     #taking into consideration the function output. I.e constrained to the function surface
 
-    return x -> 1/_nearest_point(kdtree,sm_interpolant,x)
+    return x -> -_nearest_point(kdtree,sm_interpolant,x)
 end
 
 function minimum_infill(sm_interpolant)
@@ -56,7 +36,7 @@ end
 
 function std_infill(sm_interpolant)
     function (x)
-        out = 1/(std(sm_interpolant(x)))
+        out = -(std(sm_interpolant(x)))
         return minimum((1e10,out))
     end
 end
@@ -73,14 +53,13 @@ end
 function confint_infill(conf_level, sm_interpolant)
     function (x)
         ret = sm_interpolant(x)
-        d = ret.sm_estimate
 
-        l = length(d)
-        f_mean = mean(d)
+        l = length(ret)
+        f_mean = mean(ret)
     
         α = (1 - conf_level)
         tstar = quantile(TDist(l-1), 1 - α/2)
-        SE = std(d; mean = f_mean)/sqrt(l)
+        SE = std(ret; mean = f_mean)/sqrt(l)
     
         out = f_mean - tstar * SE
         return minimum((1e10,out))
@@ -89,7 +68,7 @@ end
 
 function med_std_zscore_infill(c,sm_interpolant)
     function (x)
-        y = sm_interpolant(x).sm_estimate
+        y = sm_interpolant(x)
 
         y_filt = y[findall((x -> (x < 1) & (x > -1)), zscore(y))]
         out = median(y)-c*std(y_filt)

@@ -108,9 +108,9 @@ function surrogate_model(samples, plan, options)
     old_min = minimum(plan,dims=2)
     old_max = maximum(plan,dims=2)
 
-    sm_func = (estimation_point) ->  SurrogateEstimate(surrogate_evaluate.(Ref(preprocessed_est_point),
+    sm_func = (estimation_point) ->  surrogate_evaluate.(Ref(preprocessed_est_point),
                                         Ref(estimation_point),Tuple(itp),Tuple(optres),
-                                        Ref(old_min),Ref(old_max)))
+                                        Ref(old_min),Ref(old_max))
 
     return sm_func, optres
 end
