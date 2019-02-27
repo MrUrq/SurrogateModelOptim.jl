@@ -78,7 +78,7 @@ function med_std_zscore_infill(c,sm_interpolant)
 end
 
 
-function model_infill(plan,samples,sm_interpolant,criteria,options)
+function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
 
     @unpack rbf_opt_gens, num_interpolants, num_infill_points,
             trace, infill_funcs, infill_iterations = options
@@ -95,9 +95,6 @@ function model_infill(plan,samples,sm_interpolant,criteria,options)
     std_infill_fun = std_infill(sm_interpolant)  
     confint_infill_fun = confint_infill(0.95, sm_interpolant)         
     med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
-    
-    #The search takes places in the design space
-    sr = vcat(extrema(plan,dims = 2)...)
 
     #Get the infill objective functions
     call(f, x) = f(x)

@@ -33,13 +33,13 @@ end
 #sr = [(-5.0,5.0),(-5.0,5.0)]
 sr = [(-5.12,5.12) for i = 1:20]
 result = smoptimize(rastrigin_ND, sr, SurrogateModelOptim.Options(
-                                                iterations=165,
+                                                iterations=300-20,
                                                 num_interpolants=20,
-                                                num_start_samples=5,
+                                                num_start_samples=20,
                                                 rbf_opt_gens=50_000,
-                                                infill_iterations=50_000,
+                                                infill_iterations=100_000,
                                                 smooth=:single,
-                                                num_infill_points=3,
+                                                num_infill_points=1,
                                                     ));
 
 

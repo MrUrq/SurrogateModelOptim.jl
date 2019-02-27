@@ -39,7 +39,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
         sm_interpolant, optres = surrogate_model(samples_all, plan_all, options)
         
         #Points to add to the sampling plan to improve the interpolant
-        infill_plan_new, criteria, infill_type_new, infill_prediction_new  = model_infill(plan_all,samples_all,sm_interpolant,criteria,options)
+        infill_plan_new, criteria, infill_type_new, infill_prediction_new  = model_infill(search_range,plan_all,samples_all,sm_interpolant,criteria,options)
         
         #Evaluate the new infill points
         infill_sample_new = f_opt_eval(f,infill_plan_new,samples_all,trace)
