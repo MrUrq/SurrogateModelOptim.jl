@@ -1,9 +1,13 @@
 module SurrogateModelOptim
 
 export  smoptimize,
-        model_infill
+        model_infill,
+        Continuous,
+        Categorical
+
 
 using LatinHypercubeSampling
+import LatinHypercubeSampling.Continuous, LatinHypercubeSampling.Categorical 
 using ScatteredInterpolation
 using BlackBoxOptim
 using Distributions

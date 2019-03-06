@@ -29,6 +29,7 @@ Options configurable by the user with recommended default values.
     parallel_surrogate::Bool = true
     infill_funcs::Array{Symbol,1} = [:std,:median]
     infill_iterations::Int64 = 10_000
+    categorical::Bool = false
 
     @assert ((smooth == false) || (smooth == :variable) || 
     (smooth == :single) || (smooth == :single_user)) "Not supported option for smooth"

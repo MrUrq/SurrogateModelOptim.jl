@@ -423,11 +423,10 @@ test_funs = Dict(
                                     max_val = -2.8124505439686604e-8,
                                     max_loc = permutedims([1.0; 1.0; 3.13887e-17; 1.0; 1.0; 1.0]')),
 
-    :rosenbrock_12D => TestFunction( fun = rosenbrock_ND,
-                                    sr = [(-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0), (-5.0, 5.0)],
+    :rosenbrock_9D => TestFunction( fun = rosenbrock_ND,
+                                    sr = [(-5.0, 5.0) for i in 1:9],
                                     min_val = 0.0,
-                                    min_loc = permutedims([1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0; 1.0]'),
-                                    max_val = 990396.0,
-                                    max_loc = permutedims([-5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0; -5.0]')),
-    
+                                    min_loc = [1.0 for i in 1:9, j in 1:1],
+                                    max_val = 720288.0,
+                                    max_loc = [-5.0 for i in 1:9, j in 1:1]),    
                                     );
