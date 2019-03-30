@@ -1,30 +1,33 @@
-using SurrogateModelOptim
+using Distributed
+addprocs(20)
+
+@everywhere using SurrogateModelOptim
 using LatinHypercubeSampling
 using PlotlyJS
 using Statistics
 dir_path = @__DIR__ 
 include(joinpath(dir_path,"test_functions.jl"))
 
-# Optimize the test function
-#func = test_funs[:rosenbrock_9D]
-func = test_funs[:styblinskiTang_2D]
-
 options = SurrogateModelOptim.Options(
-    iterations=50,
-    num_interpolants=20, #Preferably even number of added processes
-    num_start_samples=5,
-    rbf_opt_gens=25_000,
-    infill_iterations=25_000,
-    num_infill_points=1,
-    trace=true,
-    categorical=true,
+    iterations=40, num_interpolants=20, #Preferably even number of added processes
+    num_start_samples=5, rbf_opt_gens=250_000, infill_iterations=250_000,
+    num_infill_points=1, trace=true, categorical=true,
         )
+    
+brute = false
 
-#Create optimised categorical sampling plan with 4 possible values in 9 dimensions
-#dims = [Categorical(4) for i in 1:9]
-#vals = [(-5.0,-2.5,2.5,5.0) for i in 1:9] #Values which are allowed in the design space 
-dims = [Categorical(10) for i in 1:2]
-vals = [Tuple((i for i in range(-5.0,stop=5.0,length=10))) for i in 1:2] #Values which are allowed in the design space 
+
+# Optimize the test function
+func = test_funs[:rosenbrock_9D]
+#func = test_funs[:styblinskiTang_2D]
+
+#Create optimised categorical sampling plan with Categorical(x) possible values in 1:y dimensions
+dims = [Categorical(4) for i in 1:9]
+#Values which are allowed in the design space 
+vals = [Tuple((i for i in range(-5.0,stop=5.0,length=4))) for i in 1:9] 
+
+#dims = [Categorical(10) for i in 1:2]
+#vals = [Tuple((i for i in range(-5.0,stop=5.0,length=10))) for i in 1:2] 
 
 
 
@@ -38,16 +41,16 @@ function closest_index(x_val, vals)
         if dx < dxbest 
             dxbest = dx 
             ibest = I 
-        end 
+        end     
     end 
     ibest 
 end 
 
-function categorical_smoptimize(func,options,dims,vals)
+function categorical_smoptimize(func,options,dims,brute,vals)
 
     #Print the known minimum (bruteforce approach)
     possible_designs = collect(Base.Iterators.product(vals...))    
-    println("Numer of possible designs = ", length(possible_designs))
+    println("Number of possible designs = ", length(possible_designs))
     min_loc = argmin(func.fun.(possible_designs))
     max_loc = argmax(func.fun.(possible_designs))
     println("Minimum and maximum value in categorical design space:")
@@ -107,7 +110,12 @@ function categorical_smoptimize(func,options,dims,vals)
         end
 
         #Points to add to the sampling plan to improve the interpolant        
-        infill_plan_new, criteria, infill_type_new, infill_prediction_new  = SurrogateModelOptim.model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria,options)
+        infill_plan_new, criteria, infill_type_new, infill_prediction_new  = 
+        if brute
+            SurrogateModelOptim.model_infill_brute(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria,options)
+        else
+            SurrogateModelOptim.model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria,options)
+        end
 
         #Evaluate the new infill points
         infill_sample_new = SurrogateModelOptim.f_opt_eval(func.fun,infill_plan_new,samples_all,trace)
@@ -126,10 +134,9 @@ function categorical_smoptimize(func,options,dims,vals)
 end
 
 
-
 # This runs num_start_samples + (iterations*num_infill_points) function
 # evaluations in total.
-result = categorical_smoptimize(func,options,dims,vals)
+result = categorical_smoptimize(func,options,dims,brute,vals)
 
 
 function plot_fun_2D(fun,sr,title)    

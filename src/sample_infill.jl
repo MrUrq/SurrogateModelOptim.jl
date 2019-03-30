@@ -34,6 +34,13 @@ function median_infill(sm_interpolant)
     end
 end
 
+function mean_infill(sm_interpolant)
+    function (x)    
+        out = mean(sm_interpolant(x))
+        return minimum((1e10,out))
+    end
+end
+
 function std_infill(sm_interpolant)
     function (x)
         out = -(std(sm_interpolant(x)))
@@ -90,6 +97,7 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
     #Infill function options
     min_infill_fun = minimum_infill(sm_interpolant)
     median_infill_fun = median_infill(sm_interpolant)
+    mean_infill_fun = mean_infill(sm_interpolant)
     med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
@@ -101,6 +109,7 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
     library = Dict(
         :min => x -> min_infill_fun(x),
         :median => x -> median_infill_fun(x),
+        :mean => x -> mean_infill_fun(x),
         :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
         :std => x -> std_infill_fun(x),
@@ -160,8 +169,10 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
         bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
 
         # Add the infill point if it does not exist in the plan or infill_plan
-        if !any(c->view(infill_plan,:,c)==bo1_solution,1:size(infill_plan,2)) & !any(c->view(plan,:,c)==bo1_solution,1:size(infill_plan,2))
-            push!(infill_prediction,median(sm_interpolant(bo1_solution)))
+        v = copy(permutedims(bo1_solution'))
+        # Add the infill point if it does not exist in the plan or infill_plan
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
+            push!(infill_prediction,median(sm_interpolant(vec(v))))
             infill_plan = [infill_plan v]            
             push!(infill_type,infill_funcs[i])
         end
@@ -189,9 +200,10 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
         
         # Add the infill point if it does not exist in the plan or infill_plan
         v = copy(permutedims(best_add_infill_solution'))    
-        if !any(c->view(infill_plan,:,c)==v,1:size(infill_plan,2)) & !any(c->view(plan,:,c)==v,1:size(infill_plan,2))
-            push!(infill_prediction,median(sm_interpolant(v)))
-            infill_plan = [infill_plan v]
+        # Add the infill point if it does not exist in the plan or infill_plan
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
+            push!(infill_prediction,median(sm_interpolant(vec(v))))
+            infill_plan = [infill_plan v]            
             push!(infill_type,:pareto)
         end       
     end
@@ -205,9 +217,10 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
             v[i] = _scale(rand(),sr[i][1],sr[i][2],old_min=0,old_max=1)
         end
 
-        if !any(c->view(infill_plan,:,c)==vec(v),1:size(infill_plan,2)) & !any(c->view(plan,:,c)==vec(v),1:size(infill_plan,2))
+        # Add the infill point if it does not exist in the plan or infill_plan
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
             push!(infill_prediction,median(sm_interpolant(vec(v))))
-            infill_plan = [infill_plan v]
+            infill_plan = [infill_plan v]            
             push!(infill_type,:rand)
         end
     end
@@ -256,6 +269,12 @@ function closest_index(x_val, vals)
     ibest 
 end 
 
+function colinmat(mat,vec)
+    for column in eachcol(mat)
+        all(column .== vec) && return true
+    end
+    false
+end
 
 
 
@@ -349,8 +368,8 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
         end
 
         # Add the infill point if it does not exist in the plan or infill_plan
-        if !any(c->view(infill_plan,:,c)==v,1:size(infill_plan,2)) & !any(c->view(plan,:,c)==v,1:size(infill_plan,2))
-            push!(infill_prediction,median(sm_interpolant(v)))
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
+            push!(infill_prediction,median(sm_interpolant(vec(v))))
             infill_plan = [infill_plan v]            
             push!(infill_type,infill_funcs[i])
         end
@@ -377,12 +396,19 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
         end
         
         # Add the infill point if it does not exist in the plan or infill_plan
-        v = copy(permutedims(best_add_infill_solution'))    
-        if !any(c->view(infill_plan,:,c)==best_add_infill_solution,1:size(infill_plan,2)) & !any(c->view(plan,:,c)==best_add_infill_solution,1:size(infill_plan,2))
-            push!(infill_prediction,median(sm_interpolant(best_add_infill_solution)))
-            infill_plan = [infill_plan v]
+        v = copy(permutedims(best_add_infill_solution'))        
+        if categorical
+            for (i,x_val) in enumerate(v)
+                c_ind = closest_index(x_val, vals[i])
+                v[i] = vals[i][c_ind]
+            end
+        end
+
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
+            push!(infill_prediction,median(sm_interpolant(vec(v))))
+            infill_plan = [infill_plan v]            
             push!(infill_type,:pareto)
-        end       
+        end
     end
     
     # Add random points if there aren't enough in the pareto front
@@ -394,10 +420,138 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
             v[i] = _scale(rand(),sr[i][1],sr[i][2],old_min=0,old_max=1)
         end
 
-        if !any(c->view(infill_plan,:,c)==vec(v),1:size(infill_plan,2)) & !any(c->view(plan,:,c)==vec(v),1:size(infill_plan,2))
+        # Add the infill point if it does not exist in the plan or infill_plan 
+        if categorical
+            for (i,x_val) in enumerate(v)
+                c_ind = closest_index(x_val, vals[i])
+                v[i] = vals[i][c_ind]
+            end
+        end
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
             push!(infill_prediction,median(sm_interpolant(vec(v))))
-            infill_plan = [infill_plan v]
+            infill_plan = [infill_plan v]            
             push!(infill_type,:rand)
+        end
+    end
+
+    if trace
+        println("Infill samples:")
+        println("---------------------------------------------------------------")
+        for i = (length(infill_type)-num_infill_points+1):length(infill_type)
+            print(@sprintf("%-15s",infill_type[i]))
+        end
+        print("\n")
+        println("---------------------------------------------------------------")
+        for j = 1:size(infill_plan,1)
+            for i = 1:size(infill_plan,2)
+                print(@sprintf("%-15.7g",infill_plan[j,i]))
+            end
+            print("\n")
+        end
+        println("---------------------------------------------------------------")
+        _, min_loc = findmin(infill_prediction)
+        for i = 1:size(infill_plan,2)
+            if i == min_loc
+                printstyled(@sprintf("%-15.7g",infill_prediction[i]); color=:light_green, bold=true)
+            else
+                printstyled(@sprintf("%-15.7g",infill_prediction[i]))
+            end
+        end
+        print("\t prediction\n")
+        println("---------------------------------------------------------------")
+    end
+
+    return infill_plan, criteria, infill_type, infill_prediction
+end
+
+
+
+
+
+
+
+
+
+
+
+
+function model_infill_brute(sr,plan,samples,sm_interpolant,vals,criteria,options)
+
+    @unpack rbf_opt_gens, num_interpolants, num_infill_points,
+            trace, infill_funcs, infill_iterations, categorical = options
+
+    if trace
+        println("Finding new infill samples ...")
+    end
+    
+    #Infill function options
+    min_infill_fun = minimum_infill(sm_interpolant)
+    median_infill_fun = median_infill(sm_interpolant)
+    med_std_infill_fun = med_std_infill(2,sm_interpolant)
+    dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
+    std_infill_fun = std_infill(sm_interpolant)  
+    confint_infill_fun = confint_infill(0.95, sm_interpolant)         
+    med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
+
+    #Get the infill objective functions
+    call(f, x) = f(x)
+    library = Dict(
+        :min => x -> min_infill_fun(x),
+        :median => x -> median_infill_fun(x),
+        :med_2std => x -> med_std_infill_fun(x),
+        :dist => x -> dist_infill_fun(x),
+        :std => x -> std_infill_fun(x),
+        :med_std_z => x -> min_std_infill_zscore_fun(x),
+        :confint => x -> confint_infill_fun(x)
+    )
+    functions_to_call = Tuple([library[s] for s in infill_funcs])
+    infill_obj_fun = function (x)
+        call.(functions_to_call, Ref(x))
+    end
+    
+    num_infill_obj_funs = length(infill_obj_fun(plan[:,1]))
+    
+
+    # Pick the infill points 
+    infill_plan = Array{Float64,2}(undef,size(plan,1),0)
+    infill_type = Array{Symbol,1}()
+    infill_prediction = Array{Float64,1}()
+
+    # Cycle through the objective functions if the number of infill points is 
+    # less than the number of objective functions.
+    if num_infill_points < num_infill_obj_funs
+        
+        infill_obj_funs = Array{Int64}(undef,num_infill_points)
+        for i = 1:num_infill_points
+            infill_obj_funs[i] = first(Iterators.drop(Iterators.cycle(1:num_infill_obj_funs),criteria+num_infill_obj_funs-2+i))
+        end
+
+        # Find the next cyclic infill objective function to use
+        criteria = infill_obj_funs[end]+1
+    else
+        infill_obj_funs = 1:num_infill_obj_funs
+    end
+    
+    for i in infill_obj_funs
+        fun = functions_to_call[i]
+        possible_designs = vec(collect(Base.Iterators.product(vals...)))        
+
+        fun_out = [fun([design...]) for design in possible_designs]        
+        
+        min_locs = sortperm(fun_out)        
+        found_min = false
+        j = 1
+        while found_min == false            
+            v = [possible_designs[min_locs[j]]...]
+
+            # Add the infill point if it does not exist in the plan or infill_plan
+            if !colinmat(infill_plan,v) && !colinmat(plan,v)
+                push!(infill_prediction,median(sm_interpolant(vec(v))))
+                infill_plan = [infill_plan v]            
+                push!(infill_type,infill_funcs[i])
+                found_min=true
+            end
+            j+=1
         end
     end
 

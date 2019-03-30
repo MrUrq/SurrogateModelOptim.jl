@@ -1,7 +1,19 @@
-Clean up infill function
+Clean up infill function. Break up into functions
 
 Create documentation
 
 Improve mixed categorical and continuous optimisation 
 
-Same points not identified use column in 1.1 func
+Benchmark mean infill
+
+Clustering
+
+Local RBFs
+
+Sparse support 
+
+RBF-PUM
+
+Save RBF optimal results and improve interpolant afterwards
+
+NE? Gradient-based AD1?
