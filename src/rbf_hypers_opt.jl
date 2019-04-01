@@ -36,7 +36,8 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
     
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
-            rbf_dist_metric, rbf_opt_gens, kerns, smooth, max_smooth, smooth_user = options
+            rbf_dist_metric, rbf_opt_gens, kerns, rbf_opt_pop,
+            smooth, max_smooth, smooth_user = options
 
     samples = vec(samples_org)
 
@@ -51,14 +52,18 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
         interp_obj(x,kerns,samples,plan; 
                 rippa=rippa, variable_kernel_width=variable_kernel_width,
                 variable_dim_scaling=variable_dim_scaling, smooth=smooth,
-                cond_max=cond_max)
+                cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,)
     end
 
     # Optimize the interpolant hyperparameters
     res = bboptimize(itp_obj; 
             Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
             TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
-            TargetFitness = 1e-5, FitnessTolerance = 1e-6);
+            TargetFitness = 1e-5, FitnessTolerance = 1e-6,
+            PopulationSize = rbf_opt_pop,
+            MaxStepsWithoutProgress=rbf_opt_gens,
+            MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
+            );
         
     kern, scaling, smooth = extract_bboptim_hypers( res.archive_output.best_candidate,
                                                     plan,kerns,variable_kernel_width,
