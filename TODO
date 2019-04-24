@@ -17,3 +17,8 @@ RBF-PUM
 Save RBF optimal results and improve interpolant afterwards
 
 NE? Gradient-based AD1?
+
+Remove other functions from selection infill
+
+Try optimizing widths by taking subsets and optimizing the subset first before optimizing the entire range.
+
