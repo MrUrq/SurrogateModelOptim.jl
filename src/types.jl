@@ -11,7 +11,7 @@ Options configurable by the user with recommended default values.
     kerns = [ScatteredInterpolation.Gaussian, ScatteredInterpolation.InverseQuadratic,
              ScatteredInterpolation.InverseMultiquadratic]
     rbf_opt_gens::Int = 25_000
-    rbf_opt_pop::Int = 25
+    rbf_opt_pop::Int = 50
     rbf_opt_method::Symbol = :de_rand_1_bin_radiuslimited
     rbf_dist_metric = Distances.Euclidean()
     variable_kernel_width::Bool = true

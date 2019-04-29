@@ -113,7 +113,7 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
         :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
         :std => x -> std_infill_fun(x),
-        :med_std_z => x -> min_std_infill_zscore_fun(x),
+        :med_std_z => x -> med_std_infill_zscore_fun(x),
         :confint => x -> confint_infill_fun(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
@@ -290,6 +290,7 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
     #Infill function options
     min_infill_fun = minimum_infill(sm_interpolant)
     median_infill_fun = median_infill(sm_interpolant)
+    mean_infill_fun = mean_infill(sm_interpolant)
     med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
@@ -301,10 +302,11 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
     library = Dict(
         :min => x -> min_infill_fun(x),
         :median => x -> median_infill_fun(x),
+        :mean => x -> mean_infill_fun(x),
         :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
         :std => x -> std_infill_fun(x),
-        :med_std_z => x -> min_std_infill_zscore_fun(x),
+        :med_std_z => x -> med_std_infill_zscore_fun(x),
         :confint => x -> confint_infill_fun(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
@@ -327,6 +329,7 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
                     SearchRange=sr, ϵ=0.00001,
                     MaxFuncEvals=infill_iterations,
                     MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
+                    
             infill_incomplete = false
         catch
             j += 1 
@@ -487,6 +490,7 @@ function model_infill_brute(sr,plan,samples,sm_interpolant,vals,criteria,options
     #Infill function options
     min_infill_fun = minimum_infill(sm_interpolant)
     median_infill_fun = median_infill(sm_interpolant)
+    mean_infill_fun = mean_infill(sm_interpolant)
     med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
@@ -498,10 +502,11 @@ function model_infill_brute(sr,plan,samples,sm_interpolant,vals,criteria,options
     library = Dict(
         :min => x -> min_infill_fun(x),
         :median => x -> median_infill_fun(x),
+        :mean => x -> mean_infill_fun(x),
         :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
         :std => x -> std_infill_fun(x),
-        :med_std_z => x -> min_std_infill_zscore_fun(x),
+        :med_std_z => x -> med_std_infill_zscore_fun(x),
         :confint => x -> confint_infill_fun(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])

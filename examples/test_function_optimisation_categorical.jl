@@ -1,33 +1,45 @@
 using Distributed
-addprocs(20)
-
-@everywhere using SurrogateModelOptim
 using LatinHypercubeSampling
 using PlotlyJS
 using Statistics
+
+if !(@isdefined loaded)
+    loaded = true    
+    addprocs(20)
+end 
+@everywhere using SurrogateModelOptim
+    
+
+
 dir_path = @__DIR__ 
 include(joinpath(dir_path,"test_functions.jl"))
 
 options = SurrogateModelOptim.Options(
-    iterations=40, num_interpolants=20, #Preferably even number of added processes
-    num_start_samples=5, rbf_opt_gens=250_000, infill_iterations=250_000,
+    iterations=16, num_interpolants=20, #Preferably even number of added processes
+    num_start_samples=4, rbf_opt_gens=250_000, infill_iterations=250_000,
     num_infill_points=1, trace=true, categorical=true,
+    variable_kernel_width=true,
+    variable_dim_scaling=true,
+    
+    infill_funcs = [:std,:median]
         )
     
 brute = false
 
 
+# # Optimize the test function
+# # Create optimised categorical sampling plan with Categorical(x) possible values in 1:y dimensions
+# func = test_funs[:rosenbrock_9D]
+# possible_locs = 20
+# dims = [Categorical(possible_locs) for i in 1:length(func.sr)]
+# vals = [Tuple((i for i in range(-5.0,stop=5.0,length=possible_locs))) for i in 1:length(func.sr)] 
+
 # Optimize the test function
-func = test_funs[:rosenbrock_9D]
-#func = test_funs[:styblinskiTang_2D]
-
-#Create optimised categorical sampling plan with Categorical(x) possible values in 1:y dimensions
-dims = [Categorical(4) for i in 1:9]
-#Values which are allowed in the design space 
-vals = [Tuple((i for i in range(-5.0,stop=5.0,length=4))) for i in 1:9] 
-
-#dims = [Categorical(10) for i in 1:2]
-#vals = [Tuple((i for i in range(-5.0,stop=5.0,length=10))) for i in 1:2] 
+# Create optimised categorical sampling plan with Categorical(x) possible values in 1:y dimensions
+func = test_funs[:rosenbrock_2D]
+possible_locs = 20
+dims = [Categorical(possible_locs) for i in 1:length(func.sr)]
+vals = [Tuple((i for i in range(-5.0,stop=5.0,length=possible_locs))) for i in 1:length(func.sr)] 
 
 
 
