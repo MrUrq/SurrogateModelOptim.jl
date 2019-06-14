@@ -18,9 +18,8 @@ options = SurrogateModelOptim.Options(
     iterations=16, num_interpolants=20, #Preferably even number of added processes
     num_start_samples=4, rbf_opt_gens=250_000, infill_iterations=250_000,
     num_infill_points=1, trace=true, categorical=true,
-    variable_kernel_width=true,
+    variable_kernel_width=false,
     variable_dim_scaling=true,
-    
     infill_funcs = [:std,:median]
         )
     
