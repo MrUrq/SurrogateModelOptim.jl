@@ -10,7 +10,7 @@ function _nearest_point(kdtree,sm_interpolant,x)
     v = SVector{length(v_tmp)}(v_tmp)
     _, dists = knn(kdtree, v, 1, true)
     
-    return dists[1]
+    return minimum((1e10,dists[1]))
 end
 
 """
@@ -45,6 +45,7 @@ model ensemble predictions at position `x`.
 function minimum_infill(sm_interpolant)
     function (x)    
         out = minimum(sm_interpolant(x))
+        return minimum((1e10,out))
     end
 end
 
@@ -57,6 +58,7 @@ model ensemble predictions at position `x`.
 function median_infill(sm_interpolant)
     function (x)    
         out = median(sm_interpolant(x))
+        return minimum((1e10,out))
     end
 end
 
@@ -69,6 +71,7 @@ model ensemble predictions at position `x`.
 function mean_infill(sm_interpolant)
     function (x)    
         out = mean(sm_interpolant(x))
+        return minimum((1e10,out))
     end
 end
 
@@ -82,6 +85,7 @@ in order to find the sample point `x` with the largest standard deviation.
 function std_infill(sm_interpolant)
     function (x)
         out = -1*std(sm_interpolant(x))
+        return minimum((1e10,out))
     end
 end
 
@@ -113,4 +117,161 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
         call.(functions_to_call, Ref(x))
     end
     return infill_obj_fun
+end
+
+function closest_index(x_val, vals) 
+            
+    ibest = first(eachindex(vals)) 
+    dxbest = abs(vals[ibest]-x_val) 
+    for I in eachindex(vals) 
+        dx = abs(vals[I]-x_val) 
+        if dx < dxbest 
+            dxbest = dx 
+            ibest = I 
+        end 
+    end 
+    ibest 
+end 
+
+function colinmat(mat,vec)
+    for column in eachcol(mat)
+        all(column .== vec) && return true
+    end
+    false
+end
+
+"""
+    infill_opt(search_range,infill_iterations,infill_obj_fun,infill_funcs)
+
+Returns the infill objective function based on the names supplied 
+in `infill_funcs`. Choose from `[:min,:median,:mean,:dist,:std]`.
+"""
+function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_fun,infill_funcs,plan,sm_interpolant,options)
+    # Try generating pareto optimal infill points. Wrapped in try block due to 
+    # the algorithm sometimes failing to generate a result.
+    infill_incomplete = true
+    j = 0
+    res_bboptim = nothing
+    while infill_incomplete && j <= 50
+        try 
+            res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
+                    FitnessScheme=ParetoFitnessScheme{length(infill_funcs)}(is_minimizing=true),
+                    SearchRange=search_range, ϵ=0.00001,
+                    MaxFuncEvals=infill_iterations,
+                    MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
+            infill_incomplete = false
+        catch ex
+            j += 1 
+            (j >= 50) && rethrow(ex)  #Show error if consistently failing
+        end
+    end
+    
+    # Pick the infill points 
+    infill_plan = Array{Float64,2}(undef,size(plan,1),0)
+    infill_type = Array{Symbol,1}()
+    infill_prediction = Array{Float64,1}()
+
+    # Take the num_infill_points number of infill points from the cycled list.
+    infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs)), num_infill_points)
+    
+    for i in infill_obj_funs
+        @show i
+        pf = pareto_frontier(res_bboptim)
+        best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
+        bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
+
+        # Add the infill point if it does not exist in the plan or infill_plan
+        v = copy(permutedims(bo1_solution'))
+        @show v
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
+            push!(infill_prediction,median(sm_interpolant(vec(v))))
+            infill_plan = [infill_plan v]            
+            push!(infill_type,infill_funcs[i])
+        end
+    end
+
+    # Cycle through the objective functions and update options with new list.
+    ifuncs=circshift(infill_funcs,num_infill_points)
+    circshift_perm=[findfirst(isequal(x),ifuncs) for x in infill_funcs]
+    options = Options(options; infill_funcs=ifuncs) 
+
+    return infill_plan,infill_type,infill_prediction,res_bboptim,options
+end
+
+function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,infill_plan,infill_type,num_infill_points,infill_obj_fun,infill_funcs,res_bboptim)
+    
+    for i = 1:(num_infill_points-size(infill_plan,2)) 
+        infill_samples = Array{Float64,2}(undef,1,size(infill_plan,2))
+        for i = 1:size(infill_plan,2)
+            infill_samples[i] = median(sm_interpolant(infill_plan[:,i]))
+        end
+
+        # Find the point in the pareto front which is located furthest away from previous samples
+        dist_infill_fun = distance_infill([plan infill_plan],[samples infill_samples],sm_interpolant)  
+        dist_obj = Inf
+        par_f = pareto_frontier(res_bboptim)
+        best_add_infill_solution = BlackBoxOptim.params(par_f[1])
+        for pf in par_f
+            bo1_solution = BlackBoxOptim.params(pf) 
+            @show dist_infill_fun(bo1_solution)
+            if (cur_val = dist_infill_fun(bo1_solution)) < dist_obj
+                dist_obj = cur_val
+                best_add_infill_solution = copy(bo1_solution)                
+            end
+        end
+        
+        # Add the infill point if it does not exist in the plan or infill_plan
+        v = copy(permutedims(best_add_infill_solution'))
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
+            push!(infill_prediction,median(sm_interpolant(vec(v))))
+            infill_plan = [infill_plan v]            
+            push!(infill_type,:pareto)
+        end       
+    end
+    
+    # Add random points if there aren't enough in the pareto front
+    while (num_infill_points-size(infill_plan,2)) != 0
+        
+        v = Array{Float64,2}(undef,size(infill_plan,1),1)
+        for i = 1:length(v)
+            v[i] = _scale(rand(),search_range[i][1],search_range[i][2],old_min=0,old_max=1)
+        end
+        # Add the infill point if it does not exist in the plan or infill_plan
+        if !colinmat(infill_plan,v) && !colinmat(plan,v)
+            push!(infill_prediction,median(sm_interpolant(vec(v))))
+            infill_plan = [infill_plan v]            
+            push!(infill_type,:rand)
+        end
+    end
+    
+    return infill_plan,infill_type,infill_prediction
+end
+
+print_infill_head() = println("Finding new infill samples ...asdf")
+
+function print_infill_tail(infill_type,num_infill_points,infill_plan,infill_prediction)
+    println("Infill samples:")
+    println("---------------------------------------------------------------")
+    for i = (length(infill_type)-num_infill_points+1):length(infill_type)
+        print(@sprintf("%-15s",infill_type[i]))
+    end
+    print("\n")
+    println("---------------------------------------------------------------")
+    for j = 1:size(infill_plan,1)
+        for i = 1:size(infill_plan,2)
+            print(@sprintf("%-15.7g",infill_plan[j,i]))
+        end
+        print("\n")
+    end
+    println("---------------------------------------------------------------")
+    _, min_loc = findmin(infill_prediction)
+    for i = 1:size(infill_plan,2)
+        if i == min_loc
+            printstyled(@sprintf("%-15.7g",infill_prediction[i]); color=:light_green, bold=true)
+        else
+            printstyled(@sprintf("%-15.7g",infill_prediction[i]))
+        end
+    end
+    print("\t prediction\n")
+    println("---------------------------------------------------------------")
 end

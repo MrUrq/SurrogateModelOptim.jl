@@ -38,5 +38,6 @@ include("search_range.jl")
 #####Examples
 #####Function headers
 #####Assert that inputs have correct dimensions
+#####Check that the underscore has been used accordingly
 
 end # module

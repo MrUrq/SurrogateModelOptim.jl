@@ -8,12 +8,12 @@ include(joinpath(dir_path,"test_functions.jl"))
 func = test_funs[:rosenbrock_2D]
 result = smoptimize(func.fun, func.sr,
                     SurrogateModelOptim.Options(
-                    iterations=5,
+                    iterations=7,
                     num_interpolants=1, #Preferably even number of added processes
                     num_start_samples=5,
-                    rbf_opt_gens=50,
-                    infill_iterations=50,
-                    num_infill_points=1,
+                    rbf_opt_gens=50_000,
+                    infill_iterations=50_000,
+                    num_infill_points=3,
                     trace=true,
                         ));
 

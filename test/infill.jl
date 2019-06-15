@@ -16,4 +16,6 @@
     @test SurrogateModelOptim.median_infill(x->(x, 2x, 4x))(1) == 2
     @test SurrogateModelOptim.mean_infill(x->(x, 2x, 4x))(1) == mean([1,2,4])
     @test SurrogateModelOptim.std_infill(x->(x, 2x, 4x))(1) == -1*std([1 2 4])
+
+    #test for catch block showing correct exception
 end
