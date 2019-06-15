@@ -1,72 +1,6 @@
 """
     _nearest_point(kdtree,sm_interpolant,x)
 
-Helper function to calculate the distance between a sample point `x` and
-all samples point in the kdtree.
-"""
-function _nearest_point(kdtree,sm_interpolant,x)
-    x = permutedims(x')
-    v_tmp = [x; median(sm_interpolant(x))]
-    v = SVector{length(v_tmp)}(v_tmp)
-    _, dists = knn(kdtree, v, 1, true)
-    
-    return dists[1]
-end
-
-"""
-    distance_infill(plan,samples,sm_interpolant)
-
-Returns an anonymous function that calculates the distance between
-sample point `x` and the closest point in `plan`. 
-The function value is included in the distance calculated by using the samples
-and the estimated function value.
-"""
-function distance_infill(plan,samples,sm_interpolant)
-
-    #KD-tree for the plan as well as the samples from the plan
-    combined_plan_samples = [plan;samples]
-    kdtree = KDTree(combined_plan_samples)    
-
-    #The distance is calculated by picking a point in the design space, evaluating the 
-    #surrogate model at that point and checking the overall distance while 
-    #taking into consideration the function output. I.e constrained to the function surface
-
-    return x -> -_nearest_point(kdtree,sm_interpolant,x)
-end
-
-
-function minimum_infill(sm_interpolant)
-    function (x)    
-        out = minimum(sm_interpolant(x))
-        return minimum((1e10,out))
-    end
-end
-
-function median_infill(sm_interpolant)
-    function (x)    
-        out = median(sm_interpolant(x))
-        return minimum((1e10,out))
-    end
-end
-
-function mean_infill(sm_interpolant)
-    function (x)    
-        out = mean(sm_interpolant(x))
-        return minimum((1e10,out))
-    end
-end
-
-function std_infill(sm_interpolant)
-    function (x)
-        out = -(std(sm_interpolant(x)))
-        return minimum((1e10,out))
-    end
-end
-
-
-"""
-    _nearest_point(kdtree,sm_interpolant,x)
-
 Compute the Bar index between `x` and `y`. If `y` is missing, compute
 the Bar index between all pairs of columns of `x`.
 
@@ -76,7 +10,8 @@ julia> bar([1, 2], [1, 2])
 1
 ```
 """
-function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
+function model_infill(sr::Array{Tuple{Float64,Float64},1},plan::AbstractArray{T,2},
+        samples::AbstractArray{T,2},sm_interpolant,criteria,options) where T
 
     @unpack rbf_opt_gens, num_interpolants, num_infill_points,
             trace, infill_funcs, infill_iterations = options
@@ -85,27 +20,7 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
         println("Finding new infill samples ...")
     end
     
-    #Infill function options
-    min_infill_fun = minimum_infill(sm_interpolant)
-    median_infill_fun = median_infill(sm_interpolant)
-    mean_infill_fun = mean_infill(sm_interpolant)
-    dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
-    std_infill_fun = std_infill(sm_interpolant)  
-
-    #Get the infill objective functions
-    call(f, x) = f(x)
-    library = Dict(
-        :min => x -> min_infill_fun(x),
-        :median => x -> median_infill_fun(x),
-        :mean => x -> mean_infill_fun(x),
-        :dist => x -> dist_infill_fun(x),
-        :std => x -> std_infill_fun(x)
-    )
-    functions_to_call = Tuple([library[s] for s in infill_funcs])
-    infill_obj_fun = function (x)
-        call.(functions_to_call, Ref(x))
-    end
-    
+    infill_obj_fun = infill_objective(sm_interpolant,plan,samples,infill_funcs)
     num_infill_obj_funs = length(infill_obj_fun(plan[:,1]))
 
     # Try generating pareto optimal infill points. Wrapped in try block due to 
@@ -114,7 +29,7 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
     j = 0
     res_bboptim = nothing
     
-    while infill_incomplete && j < 51
+    while infill_incomplete && j <= 50
         try 
             res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
                     FitnessScheme=ParetoFitnessScheme{num_infill_obj_funs}(is_minimizing=true),
@@ -122,8 +37,9 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
                     MaxFuncEvals=infill_iterations,
                     MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
             infill_incomplete = false
-        catch
+        catch ex
             j += 1 
+            (j >= 50) && rethrow(ex)  #Show error if consistently failing
         end
     end
     
@@ -260,6 +176,43 @@ function colinmat(mat,vec)
     end
     false
 end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

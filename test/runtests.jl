@@ -3,6 +3,10 @@ using Test
 
 include("samples_infill.jl")
 include("examples.jl")
+
+
+
+
 # @testset "Interface" begin
 #     @testset "Dimensional scaling" begin
 #         @test SurrogateModelOptim._update_options([(-1.0,1.0),(1.0,2.0)]).variable_dim_scaling == true
