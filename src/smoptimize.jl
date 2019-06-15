@@ -10,7 +10,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
             iterations, trace = options
     
     #Create sampling plan
-    lhc_plan = _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens;trace=trace)
+    lhc_plan = scaled_LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens;trace=trace)
     
     #Evaluate sampling plan
     lhc_samples = f_opt_eval(f,lhc_plan,trace)
@@ -57,9 +57,12 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
                             infill_plan, infill_prediction,options)
 end
 
+"""
+    function f_opt_eval(f,plan,samples,trace)
 
-
-
+Calculate the objective function value(s) and provide intermediate results printing
+showing improvements over previous best iteration.
+"""
 function f_opt_eval(f,plan,samples,trace)
 
     if trace
@@ -101,6 +104,11 @@ function f_opt_eval(f,plan,samples,trace)
     return new_samples
 end
 
+"""
+    function f_opt_eval(f,plan,trace)
+
+Calculate the objective function value(s) and plot value if trace.
+"""
 function f_opt_eval(f,plan,trace)
 
     if trace

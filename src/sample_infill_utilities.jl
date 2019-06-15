@@ -175,14 +175,12 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs)), num_infill_points)
     
     for i in infill_obj_funs
-        @show i
         pf = pareto_frontier(res_bboptim)
         best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
         bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
 
         # Add the infill point if it does not exist in the plan or infill_plan
         v = copy(permutedims(bo1_solution'))
-        @show v
         if !colinmat(infill_plan,v) && !colinmat(plan,v)
             push!(infill_prediction,median(sm_interpolant(vec(v))))
             infill_plan = [infill_plan v]            
@@ -212,8 +210,7 @@ function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,i
         par_f = pareto_frontier(res_bboptim)
         best_add_infill_solution = BlackBoxOptim.params(par_f[1])
         for pf in par_f
-            bo1_solution = BlackBoxOptim.params(pf) 
-            @show dist_infill_fun(bo1_solution)
+            bo1_solution = BlackBoxOptim.params(pf)
             if (cur_val = dist_infill_fun(bo1_solution)) < dist_obj
                 dist_obj = cur_val
                 best_add_infill_solution = copy(bo1_solution)                
@@ -247,7 +244,7 @@ function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,i
     return infill_plan,infill_type,infill_prediction
 end
 
-print_infill_head() = println("Finding new infill samples ...asdf")
+print_infill_head() = println("Finding new infill samples ...")
 
 function print_infill_tail(infill_type,num_infill_points,infill_plan,infill_prediction)
     println("Infill samples:")

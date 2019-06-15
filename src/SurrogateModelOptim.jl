@@ -1,7 +1,9 @@
 module SurrogateModelOptim
 
 export  smoptimize,
-        model_infill
+        surrogate_model,
+        model_infill,
+        scaled_LHC_sampling_plan
 
 
 using LatinHypercubeSampling
@@ -39,5 +41,7 @@ include("search_range.jl")
 #####Function headers
 #####Assert that inputs have correct dimensions
 #####Check that the underscore has been used accordingly
-
+#####Add test for std needing more than 1 surrogate
+#####Add doc string to module
+#####Add doc string to types
 end # module

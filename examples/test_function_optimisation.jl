@@ -9,7 +9,7 @@ func = test_funs[:rosenbrock_2D]
 result = smoptimize(func.fun, func.sr,
                     SurrogateModelOptim.Options(
                     iterations=7,
-                    num_interpolants=1, #Preferably even number of added processes
+                    num_interpolants=2, #Preferably even number of added processes
                     num_start_samples=5,
                     rbf_opt_gens=50_000,
                     infill_iterations=50_000,

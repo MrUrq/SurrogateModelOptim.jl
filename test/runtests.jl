@@ -1,8 +1,9 @@
 using SurrogateModelOptim
 using Test
 
-include("samples_infill.jl")
-include("examples.jl")
+include("infill.jl")
+include("utils.jl")
+#include("examples.jl")
 
 
 

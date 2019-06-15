@@ -31,7 +31,6 @@ function model_infill(search_range::Vector{Tuple{Float64,Float64}},plan::Abstrac
     trace && print_infill_head() 
     
     # Extract the requested infill objective functions
-    @show infill_funcs
     infill_obj_fun = infill_objective(sm_interpolant,plan,samples,infill_funcs)
 
     # Find the infill optimisation points
