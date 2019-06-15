@@ -14,8 +14,8 @@ Forrester(x) = (6*x[1] - 2)^2 * sin(12*x[1] - 4)
 Forrester_disc(x) = x[1]>0.15 ? Forrester(x[1])+15 : Forrester(x[1])
 sr=[(0.0,1.0)]
 
-result = smoptimize(Forrester_disc, sr,
-                    SurrogateModelOptim.Options(
+result = smoptimize(Forrester_disc, sr;
+                    options=SurrogateModelOptim.Options(
                     iterations=2,
                     num_interpolants=20, #Preferably even number of added processes
                     num_start_samples=5,

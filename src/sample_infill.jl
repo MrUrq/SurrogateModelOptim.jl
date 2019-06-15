@@ -23,7 +23,7 @@ cycling through the infill objective functions.
 ...
 """
 function model_infill(search_range::Vector{Tuple{Float64,Float64}},plan::AbstractArray{T,2},
-        samples::AbstractArray{T,2},sm_interpolant; options=Options()) where T
+        samples::AbstractArray{T,2},sm_interpolant; options::Options=Options()) where T
 
     @unpack rbf_opt_gens, num_interpolants, num_infill_points,
             trace, infill_funcs, infill_iterations = options

@@ -1,6 +1,9 @@
 """
-    function interp_obj(inpt::Vector{Float64}, kerns, samples::Array{Float64,2},
-    plan::Array{Float64,2}; rippa::Bool = false, scale::Bool = false)
+    interp_obj(inpt::Vector{Float64}, kerns, samples,
+    plan::Array{Float64,2}; rippa::Bool = false,
+    variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
+    smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
+    smooth_user::Float64 = 0.0)
 
 Objective function for optimisation of interpolation kernel function and width.
 """
@@ -19,8 +22,8 @@ function interp_obj(inpt::Vector{Float64}, kerns, samples,
 
     #Preprocess the plan based on the settings used.
     preprocessed_plan = preprocess_point(plan,optres,base_scale=plan)
-
     
+    #Wrapped in try catch-block to catch failure to solve linear eq. system
     E = try
         E = RMSErrorLOO(kern, samples, preprocessed_plan, smooth; rippa = rippa,
         cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
@@ -31,8 +34,12 @@ function interp_obj(inpt::Vector{Float64}, kerns, samples,
     return E
 end
 
+"""
+    rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
 
-function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::SurrogateModelOptim.Options)
+Optimisation function of Radial Basis Function kernel and width.
+"""
+function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
     
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
@@ -76,9 +83,14 @@ end
 
 
 
+"""
+    surrogate_model(samples, plan; options=Options())
 
-#Returns anonymous function that is an optimised RBF-based surrogate model
-function surrogate_model(samples, plan, options)
+Returns function based on optimised an optimised Radial Basis Function.
+Depending on the options the kernel and width and scaling of data is 
+optimised.
+"""
+function surrogate_model(samples, plan; options::Options=Options())
 
     @unpack num_interpolants, trace, parallel_surrogate = options
 

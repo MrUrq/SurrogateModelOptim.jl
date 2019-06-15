@@ -6,8 +6,8 @@ include(joinpath(dir_path,"test_functions.jl"))
 
 # Optimize the test function
 func = test_funs[:rosenbrock_2D]
-result = smoptimize(func.fun, func.sr,
-                    SurrogateModelOptim.Options(
+result = smoptimize(func.fun, func.sr;
+                    options=SurrogateModelOptim.Options(
                     iterations=7,
                     num_interpolants=2, #Preferably even number of added processes
                     num_start_samples=5,

@@ -108,7 +108,7 @@ function categorical_smoptimize(func,options,dims,brute,vals)
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
         plan_all = [lhc_plan infill_plan]
-        sm_interpolant, optres = SurrogateModelOptim.surrogate_model(samples_all, plan_all, options)
+        sm_interpolant, optres = SurrogateModelOptim.surrogate_model(samples_all, plan_all; options=options)
 
         
         sm_interpolant_cat = function (x,vals)
@@ -123,9 +123,9 @@ function categorical_smoptimize(func,options,dims,brute,vals)
         #Points to add to the sampling plan to improve the interpolant        
         infill_plan_new, criteria, infill_type_new, infill_prediction_new  = 
         if brute
-            SurrogateModelOptim.model_infill_brute(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria,options)
+            SurrogateModelOptim.model_infill_brute(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria;options=options)
         else
-            SurrogateModelOptim.model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria,options)
+            SurrogateModelOptim.model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria;options=options)
         end
 
         #Evaluate the new infill points

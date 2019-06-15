@@ -21,8 +21,8 @@ opt_fun = function (x)
 end
 
 # Optimize the test function
-result = smoptimize(opt_fun, func.sr,
-                    SurrogateModelOptim.Options(
+result = smoptimize(opt_fun, func.sr;
+                    options=SurrogateModelOptim.Options(
                     iterations=5,
                     num_interpolants=2, #Preferably even number of added processes
                     num_start_samples=5,

@@ -1,9 +1,9 @@
 """
-    function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options=Options())
+    function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; options=Options())
 
 Optimize the function `f` in the range `search_range` using a Radial Basis Function based surrogate model.
 """
-function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, options::Options=Options())
+function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; options::Options=Options())
 
     #Load some optional argument values
     @unpack num_start_samples, sampling_plan_opt_gens,
@@ -35,7 +35,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
         plan_all = [lhc_plan infill_plan]
-        sm_interpolant, optres = surrogate_model(samples_all, plan_all, options)
+        sm_interpolant, optres = surrogate_model(samples_all, plan_all; options=options)
         
         #Points to add to the sampling plan to improve the interpolant
         infill_plan_new, infill_type_new, infill_prediction_new, options  = model_infill(search_range,plan_all,
