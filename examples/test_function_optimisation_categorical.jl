@@ -1,13 +1,13 @@
-using Distributed
+# using Distributed
 using LatinHypercubeSampling
 using PlotlyJS
 using Statistics
 
-if !(@isdefined loaded)
-    loaded = true    
-    addprocs(20)
-end 
-@everywhere using SurrogateModelOptim
+# if !(@isdefined loaded)
+#     loaded = true    
+#     addprocs(20)
+# end 
+# @everywhere using SurrogateModelOptim
     
 
 
@@ -15,8 +15,8 @@ dir_path = @__DIR__
 include(joinpath(dir_path,"test_functions.jl"))
 
 options = SurrogateModelOptim.Options(
-    iterations=16, num_interpolants=20, #Preferably even number of added processes
-    num_start_samples=4, rbf_opt_gens=250_000, infill_iterations=250_000,
+    iterations=5, num_interpolants=2, #Preferably even number of added processes
+    num_start_samples=4, rbf_opt_gens=50, infill_iterations=50,
     num_infill_points=1, trace=true, categorical=true,
     variable_kernel_width=false,
     variable_dim_scaling=true,
@@ -37,7 +37,7 @@ brute = false
 # Create optimised categorical sampling plan with Categorical(x) possible values in 1:y dimensions
 func = test_funs[:rosenbrock_2D]
 possible_locs = 20
-dims = [Categorical(possible_locs) for i in 1:length(func.sr)]
+dims = [LatinHypercubeSampling.Categorical(possible_locs) for i in 1:length(func.sr)]
 vals = [Tuple((i for i in range(-5.0,stop=5.0,length=possible_locs))) for i in 1:length(func.sr)] 
 
 
@@ -169,3 +169,4 @@ if length(func.sr) == 2
     display(plot_fun_2D(x->median(result.sm_interpolant(x)),func.sr,"Estimated function"))
 end
 
+return true

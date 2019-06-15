@@ -1,16 +1,13 @@
 module SurrogateModelOptim
 
 export  smoptimize,
-        model_infill,
-        Continuous,
-        Categorical
+        model_infill
 
 
 using LatinHypercubeSampling
 import LatinHypercubeSampling.Continuous, LatinHypercubeSampling.Categorical 
 using ScatteredInterpolation
 using BlackBoxOptim
-using Distributions
 using Parameters
 using Distances
 using Statistics
@@ -18,11 +15,11 @@ using StatsBase
 using LinearAlgebra
 using Distributed
 using StaticArrays
-using NearestNeighbors
+import NearestNeighbors: KDTree, knn
 using Printf
 
 include("types.jl")
-include("interface.jl")
+include("LHC_sampling_plan.jl")
 include("rbf_hypers_opt.jl")
 include("rbf_hypers_opt_utilities.jl")
 include("sample_infill.jl")

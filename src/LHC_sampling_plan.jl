@@ -1,5 +1,5 @@
 
-function _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens,trace)
+function _LHC_sampling_plan(search_range::Array{Tuple{Float64,Float64},1},num_start_samples,sampling_plan_opt_gens;trace)
    
     #Printing of creation
     trace && _LHC_trace()

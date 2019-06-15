@@ -10,7 +10,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}, 
             iterations, trace = options
     
     #Create sampling plan
-    lhc_plan = _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens,trace)
+    lhc_plan = _LHC_sampling_plan(search_range,num_start_samples,sampling_plan_opt_gens;trace=trace)
     
     #Evaluate sampling plan
     lhc_samples = f_opt_eval(f,lhc_plan,trace)

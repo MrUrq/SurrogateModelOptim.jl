@@ -1,12 +1,26 @@
+"""
+    _nearest_point(kdtree,sm_interpolant,x)
+
+Helper function to calculate the distance between a sample point `x` and
+all samples point in the kdtree.
+"""
 function _nearest_point(kdtree,sm_interpolant,x)
     x = permutedims(x')
     v_tmp = [x; median(sm_interpolant(x))]
     v = SVector{length(v_tmp)}(v_tmp)
-    idxs, dists = knn(kdtree, v, 1, true)
+    _, dists = knn(kdtree, v, 1, true)
     
-    return minimum((1e10,dists[1]))    
+    return dists[1]
 end
 
+"""
+    distance_infill(plan,samples,sm_interpolant)
+
+Returns an anonymous function that calculates the distance between
+sample point `x` and the closest point in `plan`. 
+The function value is included in the distance calculated by using the samples
+and the estimated function value.
+"""
 function distance_infill(plan,samples,sm_interpolant)
 
     #KD-tree for the plan as well as the samples from the plan
@@ -19,6 +33,7 @@ function distance_infill(plan,samples,sm_interpolant)
 
     return x -> -_nearest_point(kdtree,sm_interpolant,x)
 end
+
 
 function minimum_infill(sm_interpolant)
     function (x)    
@@ -48,43 +63,19 @@ function std_infill(sm_interpolant)
     end
 end
 
-function med_std_infill(c,sm_interpolant)
-    function (x)
-        ret = sm_interpolant(x)
-        out = median(ret)-c*std(ret)
 
-        return minimum((1e10,out))
-    end
-end
+"""
+    _nearest_point(kdtree,sm_interpolant,x)
 
-function confint_infill(conf_level, sm_interpolant)
-    function (x)
-        ret = sm_interpolant(x)
+Compute the Bar index between `x` and `y`. If `y` is missing, compute
+the Bar index between all pairs of columns of `x`.
 
-        l = length(ret)
-        f_mean = mean(ret)
-    
-        α = (1 - conf_level)
-        tstar = quantile(TDist(l-1), 1 - α/2)
-        SE = std(ret; mean = f_mean)/sqrt(l)
-    
-        out = f_mean - tstar * SE
-        return minimum((1e10,out))
-    end
-end
-
-function med_std_zscore_infill(c,sm_interpolant)
-    function (x)
-        y = sm_interpolant(x)
-
-        y_filt = y[findall((x -> (x < 1) & (x > -1)), zscore(y))]
-        out = median(y)-c*std(y_filt)
-
-        return minimum((1e10,out))
-    end
-end
-
-
+# Examples
+```julia-repl
+julia> bar([1, 2], [1, 2])
+1
+```
+"""
 function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
 
     @unpack rbf_opt_gens, num_interpolants, num_infill_points,
@@ -98,11 +89,8 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
     min_infill_fun = minimum_infill(sm_interpolant)
     median_infill_fun = median_infill(sm_interpolant)
     mean_infill_fun = mean_infill(sm_interpolant)
-    med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
-    confint_infill_fun = confint_infill(0.95, sm_interpolant)         
-    med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
 
     #Get the infill objective functions
     call(f, x) = f(x)
@@ -110,11 +98,8 @@ function model_infill(sr,plan,samples,sm_interpolant,criteria,options)
         :min => x -> min_infill_fun(x),
         :median => x -> median_infill_fun(x),
         :mean => x -> mean_infill_fun(x),
-        :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
-        :std => x -> std_infill_fun(x),
-        :med_std_z => x -> med_std_infill_zscore_fun(x),
-        :confint => x -> confint_infill_fun(x)
+        :std => x -> std_infill_fun(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
@@ -291,11 +276,8 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
     min_infill_fun = minimum_infill(sm_interpolant)
     median_infill_fun = median_infill(sm_interpolant)
     mean_infill_fun = mean_infill(sm_interpolant)
-    med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
-    std_infill_fun = std_infill(sm_interpolant)  
-    confint_infill_fun = confint_infill(0.95, sm_interpolant)         
-    med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
+    std_infill_fun = std_infill(sm_interpolant) 
 
     #Get the infill objective functions
     call(f, x) = f(x)
@@ -303,11 +285,8 @@ function model_infill(sr,plan,samples,sm_interpolant,vals,criteria,options)
         :min => x -> min_infill_fun(x),
         :median => x -> median_infill_fun(x),
         :mean => x -> mean_infill_fun(x),
-        :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
-        :std => x -> std_infill_fun(x),
-        :med_std_z => x -> med_std_infill_zscore_fun(x),
-        :confint => x -> confint_infill_fun(x)
+        :std => x -> std_infill_fun(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
@@ -491,11 +470,8 @@ function model_infill_brute(sr,plan,samples,sm_interpolant,vals,criteria,options
     min_infill_fun = minimum_infill(sm_interpolant)
     median_infill_fun = median_infill(sm_interpolant)
     mean_infill_fun = mean_infill(sm_interpolant)
-    med_std_infill_fun = med_std_infill(2,sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
-    std_infill_fun = std_infill(sm_interpolant)  
-    confint_infill_fun = confint_infill(0.95, sm_interpolant)         
-    med_std_infill_zscore_fun = med_std_zscore_infill(1,sm_interpolant) 
+    std_infill_fun = std_infill(sm_interpolant)
 
     #Get the infill objective functions
     call(f, x) = f(x)
@@ -503,11 +479,8 @@ function model_infill_brute(sr,plan,samples,sm_interpolant,vals,criteria,options
         :min => x -> min_infill_fun(x),
         :median => x -> median_infill_fun(x),
         :mean => x -> mean_infill_fun(x),
-        :med_2std => x -> med_std_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
-        :std => x -> std_infill_fun(x),
-        :med_std_z => x -> med_std_infill_zscore_fun(x),
-        :confint => x -> confint_infill_fun(x)
+        :std => x -> std_infill_fun(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
