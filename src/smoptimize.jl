@@ -30,7 +30,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; 
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
         plan_all = [lhc_plan infill_plan]
-        sm_interpolant, optres = surrogate_model(samples_all, plan_all; options=options)
+        sm_interpolant, optres = surrogate_model(plan_all, samples_all; options=options)
         
         #Points to add to the sampling plan to improve the interpolant
         infill_plan_new, infill_type_new, infill_prediction_new, options  = model_infill(search_range,plan_all,

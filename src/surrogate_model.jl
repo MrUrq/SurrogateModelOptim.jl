@@ -1,5 +1,5 @@
 """
-    surrogate_model(samples::AbstractArray{T,2}, plan::AbstractArray{T,2}; options=Options()) where T
+    surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; options=Options()) where T
 
 Returns surrogate model that is a function based on an optimised Radial Basis Function
 interpolant. Depending on the options, the kernel, kernel width and scaling of 
@@ -17,7 +17,7 @@ input data is optimised.
     all options available to customize the surrogate optimisation.  
 ...
 """
-function surrogate_model(samples, plan; options::Options=Options())
+function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; options::Options=Options()) where T
 
     @unpack num_interpolants, trace, parallel_surrogate = options
 
