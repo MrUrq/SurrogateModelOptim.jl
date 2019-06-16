@@ -6,5 +6,5 @@
     samples = mapslices(sum,plan,dims=1)
 
     #Make sure correct input format is used
-    Test.@test_throws ErrorException surrogate_model(permutedims(plan),samples)
+    @test_throws ErrorException surrogate_model(permutedims(plan),samples)
 end

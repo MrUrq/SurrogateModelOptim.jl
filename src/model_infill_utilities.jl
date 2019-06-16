@@ -201,7 +201,7 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     end
 
     # Cycle through the objective functions and update options with new list.
-    ifuncs=circshift(infill_funcs,num_infill_points)
+    ifuncs=circshift(infill_funcs,-num_infill_points)
     circshift_perm=[findfirst(isequal(x),ifuncs) for x in infill_funcs]
     options = Options(options; infill_funcs=ifuncs) 
 
