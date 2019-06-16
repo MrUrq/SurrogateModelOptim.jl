@@ -4,6 +4,7 @@ using Test
 include("infill.jl")
 include("utils.jl")
 include("rbf_opt.jl")
+include("surrogate.jl")
 #include("examples.jl")
 
 

@@ -22,6 +22,8 @@ function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; 
     @unpack num_interpolants, trace, parallel_surrogate = options
 
     trace && println("Creating optimized surrogate model ...")
+
+    (length(samples) != size(plan,2)) && error("plan and samples do not have the correct sizes")
     
     #Optimize RBF hypers for the ensamble of interpolants
     if parallel_surrogate

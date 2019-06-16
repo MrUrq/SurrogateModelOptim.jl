@@ -29,6 +29,8 @@ function model_infill(search_range::Vector{Tuple{Float64,Float64}},plan::Abstrac
             trace, infill_funcs, infill_iterations = options
         
     trace && print_infill_head() 
+
+    (length(samples) != size(plan,2)) && error("plan and samples do not have the correct sizes")
     
     # Extract the requested infill objective functions
     infill_obj_fun = infill_objective(sm_interpolant,plan,samples,infill_funcs)

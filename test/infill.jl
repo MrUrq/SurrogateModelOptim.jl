@@ -20,4 +20,7 @@
 
     #Test that try-catch block correctly shows exception when enough iterations have passed
     Test.@test_throws ArgumentError SurrogateModelOptim.infill_opt(search_range,2,2,sum,[:std],plan,sum,SurrogateModelOptim.Options())
+
+    #Make sure correct input format is used
+    Test.@test_throws ErrorException model_infill(search_range,permutedims(plan),samples,sum)
 end

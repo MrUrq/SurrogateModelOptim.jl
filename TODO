@@ -2,8 +2,6 @@
 
 ##  Add tests for all functions where appropriate
 
-##  Assert that inputs have correct dimensions
-
 ##  Examples for different optimisation cases
 
 ##  Add test for std needing more than 1 surrogate
@@ -21,6 +19,8 @@
 ##  Add test for parallel and not parallel
 
 ##  Add contribution file
+
+##  List of all optional arguments and their function
 
 
 ########## IMPROVEMENTS
