@@ -26,19 +26,21 @@
 
 ##  Add test for parallel and not parallel
 
+##  Add contribution file
+
 
 ########## IMPROVEMENTS
 
-## Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
+##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
 
-## Options to solve ScatteredInterpolation linear eq system on gpu.
+##  Options to solve ScatteredInterpolation linear eq system on gpu.
 
-## Use iterative solver on cpu with a much larger tolerance. Test if keeping 
- the optimum settings from the previous iteration and using them as a seed
- improve convergence speed for the iterative solver. 
+##  Use iterative solver on cpu with a much larger tolerance. Test if keeping 
+    the optimum settings from the previous iteration and using them as a seed
+    improve convergence speed for the iterative solver. 
 
-## Possibility to save entire optimisation state in an easy manner. 
+##  Possibility to save entire optimisation state in an easy manner. 
 
-## Try optimizing widths by optimizing a subset before optimizing the entire range.
+##  Try optimizing widths by optimizing a subset before optimizing the entire range.
 
-## Implement RBFs with sparse support to increase speed of solving linear eq. system.
+##  Implement RBFs with sparse support to increase speed of solving linear eq. system.

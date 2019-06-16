@@ -229,6 +229,22 @@ function preprocess_point(points,optres::SurrogateModelOptim.RBFHypers{Bool,U};b
 end
 
 """
+    surrogate_evaluate(preprocessed_est_point,estimation_point,itp,optres,old_min,old_max)
+
+Processes the input to scale correctly based on the options used.
+"""
+function surrogate_evaluate(preprocessed_est_point,estimation_point,itp,optres,old_min,old_max)
+    preprocessed_est_point = preprocess_point!( preprocessed_est_point,
+                                                estimation_point, optres;
+                                                old_min=old_min,
+                                                old_max=old_max,
+                                                )
+    
+    # Evaluate the interpolation object
+    res = ScatteredInterpolation.evaluate(itp, preprocessed_est_point)[1]
+end
+
+"""
     construct_search_range(plan::Array{Float64,2}, variable_kernel_width,
     min_rbf_width, max_rbf_width, variable_dim_scaling,
     min_scale, max_scale, smooth, max_smooth)
@@ -401,8 +417,8 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
             rbf_dist_metric, rbf_opt_gens, kerns, rbf_opt_pop,
             smooth, max_smooth, smooth_user = options
 
+    # Sample order for ScatteredInterpolation
     samples = vec(samples_org)
-
 
     # Create the hyperparameter search range based on the input options 
     sr = construct_search_range(plan, variable_kernel_width,

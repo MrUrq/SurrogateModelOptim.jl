@@ -21,9 +21,7 @@ function surrogate_model(samples, plan; options::Options=Options())
 
     @unpack num_interpolants, trace, parallel_surrogate = options
 
-    if trace
-        println("Creating optimized surrogate model ...")
-    end
+    trace && println("Creating optimized surrogate model ...")
     
     #Optimize RBF hypers for the ensamble of interpolants
     if parallel_surrogate
@@ -34,20 +32,20 @@ function surrogate_model(samples, plan; options::Options=Options())
                         1:num_interpolants)
     end
 
-    #Correct sample order
-    observations = samples'
+    # Sample order for ScatteredInterpolation
+    samples_vec = vec(samples)
 
-    #Interpolation object based on the optimisation results
+    # Interpolation object based on the optimisation results
     itp = Array{ScatteredInterpolation.RBFInterpolant,1}(undef,num_interpolants)
     for i = 1:num_interpolants
-        #Preprocess the points based on the settings used.
+        # Preprocess the points based on the settings used.
         preprocessed_point = preprocess_point(plan,optres[i],base_scale=plan)
         
         itp[i] = interpolate(optres[i].kernelFunc, preprocessed_point,
-                             observations, smooth=optres[i].smooth)
+                            samples_vec, smooth=optres[i].smooth)
     end
 
-    #Pre allocate and calculate to reduce cost of evaluating surrogate model.
+    # Pre allocate and calculate to reduce cost of evaluating surrogate model.
     preprocessed_est_point = Array{Float64,2}(undef,size(plan,1),1)
     old_min = minimum(plan,dims=2)
     old_max = maximum(plan,dims=2)
@@ -58,18 +56,3 @@ function surrogate_model(samples, plan; options::Options=Options())
 
     return sm_func, optres
 end
-
-function surrogate_evaluate(preprocessed_est_point,estimation_point,itp,optres,old_min,old_max)
-    preprocessed_est_point = preprocess_point!( preprocessed_est_point,
-                                                estimation_point, optres;
-                                                old_min=old_min,
-                                                old_max=old_max,
-                                                )
-    
-    #Evaluate the interpolation object
-    res = ScatteredInterpolation.evaluate(itp, preprocessed_est_point)[1]
-end
-
-
-
-
