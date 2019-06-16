@@ -222,7 +222,7 @@ end
 #         # Add the infill point if it does not exist in the plan or infill_plan
 #         v = Array{Float64,2}(undef,size(infill_plan,1),1)
 #         for i = 1:length(v)
-#             v[i] = _scale(rand(),search_range[i][1],search_range[i][2],old_min=0,old_max=1)
+#             v[i] = scale(rand(),search_range[i][1],search_range[i][2],old_min=0,old_max=1)
 #         end
 
 #         # Add the infill point if it does not exist in the plan or infill_plan 

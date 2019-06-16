@@ -210,7 +210,7 @@ end
 
 """
     infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,infill_plan,infill_type,num_infill_points,infill_obj_fun,infill_funcs,res_bboptim)
-    
+
 Adds additional sample points if the `infill_opt` can't supply the number of 
 requested infill points. First a pareto optimal point based on the infill 
 functions is selected. The pareto point furthest away from all existing points 
@@ -253,7 +253,7 @@ function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,i
         
         v = Array{Float64,2}(undef,size(infill_plan,1),1)
         for i = 1:length(v)
-            v[i] = _scale(rand(),search_range[i][1],search_range[i][2],old_min=0,old_max=1)
+            v[i] = scale(rand(),search_range[i][1],search_range[i][2],old_min=0,old_max=1)
         end
         # Add the infill point if it does not exist in the plan or infill_plan
         if !colinmat(infill_plan,v) && !colinmat(plan,v)
