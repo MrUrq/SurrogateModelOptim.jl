@@ -5,7 +5,7 @@ Optimize the function `f` in the range `search_range` using a Radial Basis Funct
 """
 function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; options::Options=Options())
 
-    #Load some optional argument values
+    #Load some option values
     @unpack num_start_samples, sampling_plan_opt_gens,
             iterations, trace = options
     
@@ -23,7 +23,7 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; 
     infill_plan = Array{Float64,2}(undef,size(lhc_plan,1),0)
     infill_sample = Array{Float64,2}(undef,1,0)
 
-    #Run the optimization iterations number of times
+    #Run the entire optimization iterations number of times
     for i = 1:iterations
         if trace
             print("\n \n \n \t Iteration ")

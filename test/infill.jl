@@ -10,6 +10,7 @@
     combined_points_samples = [plan;samples]
     kdtree = SurrogateModelOptim.KDTree(combined_points_samples)  
 
+    #Infill objectives
     @test SurrogateModelOptim._nearest_point(kdtree,x->sum(x),plan[:,1]) == 0
     @test SurrogateModelOptim.distance_infill(plan,samples,x->sum(x))(plan[:,1]) == 0
     @test SurrogateModelOptim.minimum_infill(x->(x, 2x, 4x))(1) == 1
@@ -17,5 +18,6 @@
     @test SurrogateModelOptim.mean_infill(x->(x, 2x, 4x))(1) == mean([1,2,4])
     @test SurrogateModelOptim.std_infill(x->(x, 2x, 4x))(1) == -1*std([1 2 4])
 
-    #test for catch block showing correct exception
+    #Test that try-catch block correctly shows exception when enough iterations have passed
+    Test.@test_throws ArgumentError SurrogateModelOptim.infill_opt(search_range,2,2,sum,[:std],plan,sum,SurrogateModelOptim.Options())
 end

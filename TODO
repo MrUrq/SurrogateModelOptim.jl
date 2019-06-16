@@ -1,24 +1,40 @@
-Clean up infill function. Break up into functions
+########## TODO
 
-Create documentation
+##  Add doc string to the module
 
-Improve mixed categorical and continuous optimisation 
+##  Add doc string to the internal types
 
-Benchmark mean infill
+##  Doc strings for all functions, add comments where appropriate
 
-Clustering
+##  Add tests for all functions where appropriate
 
-Local RBFs
+##  Assert that inputs have correct dimensions
 
-Sparse support 
+##  Examples for different optimisation cases
 
-RBF-PUM
+##  Check that the underscore has been used accordingly for internal functions
 
-Save RBF optimal results and improve interpolant afterwards
+##  Add test for std needing more than 1 surrogate
 
-NE? Gradient-based AD1?
+##  Results printing
 
-Remove other functions from selection infill
+##  Call and continue optimisation with the results type.
 
-Try optimizing widths by taking subsets and optimizing the subset first before optimizing the entire range.
+##  Documentation with PlotlyJS web based plots for easy viewing of different options. 
 
+
+########## IMPROVEMENTS
+
+## Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
+
+## Options to solve ScatteredInterpolation linear eq system on gpu.
+
+## Use iterative solver on cpu with a much larger tolerance. Test if keeping 
+ the optimum settings from the previous iteration and using them as a seed
+ improve convergence speed for the iterative solver. 
+
+## Possibility to save entire optimisation state in an easy manner. 
+
+## Try optimizing widths by optimizing a subset before optimizing the entire range.
+
+## Implement RBFs with sparse support to increase speed of solving linear eq. system.
