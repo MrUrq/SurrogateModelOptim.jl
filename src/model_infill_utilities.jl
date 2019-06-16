@@ -5,12 +5,12 @@ Helper function to calculate the distance between a sample point `x` and
 all samples point in the kdtree.
 """
 function _nearest_point(kdtree,sm_interpolant,x)
-    x = permutedims(x')
+    x = permutedims(x') #Arrange in column vector
     v_tmp = [x; median(sm_interpolant(x))]
     v = SVector{length(v_tmp)}(v_tmp)
     _, dists = knn(kdtree, v, 1, true)
     
-    return minimum((1e10,dists[1]))
+    return dists[1]
 end
 
 """
@@ -45,7 +45,7 @@ model ensemble predictions at position `x`.
 function minimum_infill(sm_interpolant)
     function (x)    
         out = minimum(sm_interpolant(x))
-        return minimum((1e10,out))
+        return out
     end
 end
 
@@ -58,7 +58,7 @@ model ensemble predictions at position `x`.
 function median_infill(sm_interpolant)
     function (x)    
         out = median(sm_interpolant(x))
-        return minimum((1e10,out))
+        return out
     end
 end
 
@@ -71,7 +71,7 @@ model ensemble predictions at position `x`.
 function mean_infill(sm_interpolant)
     function (x)    
         out = mean(sm_interpolant(x))
-        return minimum((1e10,out))
+        return out
     end
 end
 
@@ -85,7 +85,7 @@ in order to find the sample point `x` with the largest standard deviation.
 function std_infill(sm_interpolant)
     function (x)
         out = -1*std(sm_interpolant(x))
-        return minimum((1e10,out))
+        return out
     end
 end
 

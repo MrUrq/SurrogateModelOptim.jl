@@ -1,9 +1,5 @@
 ########## TODO
 
-##  Doc strings for all functions, add comments where appropriate
-
-##  Remove minimum from output of infill objectives
-
 ##  Add tests for all functions where appropriate
 
 ##  Assert that inputs have correct dimensions
