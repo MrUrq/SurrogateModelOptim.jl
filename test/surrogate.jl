@@ -19,7 +19,7 @@
                         variable_dim_scaling = true,
                         smooth=:single,
                         parallel_surrogate=false,
-                        infill_funcs=[:min,:mean,:median,:std,:dist]
+                        infill_funcs=[:min,:mean,:median,:dist]
                             ));
     @test typeof(result) == SurrogateModelOptim.SurrogateResult
 
@@ -224,7 +224,7 @@
     result = smoptimize(rosenbrock_2D, [(-5.0,5.0),(-5.0,5.0)];
                         options=SurrogateModelOptim.Options(
                         iterations=6,
-                        num_interpolants=1,
+                        num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=50,
                         infill_iterations=50,

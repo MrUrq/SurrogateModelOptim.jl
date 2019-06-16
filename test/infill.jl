@@ -22,5 +22,12 @@
     @test_throws ArgumentError SurrogateModelOptim.infill_opt(search_range,2,2,sum,[:std],plan,sum,SurrogateModelOptim.Options())
 
     #Make sure correct input format is used
-    @test_throws ErrorException model_infill(search_range,permutedims(plan),samples,sum)
+    @test_throws ErrorException model_infill(search_range,permutedims(plan),samples,sum;
+            options = SurrogateModelOptim.Options(trace=false))
+
+    #Make sure that input format is used
+    @test_throws ErrorException model_infill(search_range,permutedims(plan),samples,
+            sum; options = SurrogateModelOptim.Options( infill_funcs = [:std,:median],
+                                                        num_interpolants = 1,
+                                                        trace = false))
 end

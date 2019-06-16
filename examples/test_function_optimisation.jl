@@ -18,6 +18,7 @@ result = smoptimize(func.fun, func.sr;
                     iterations=25,
                     num_interpolants=20, #Preferably even number of added processes
                     num_start_samples=5,
+                    rippa=true,
                     rbf_opt_gens=50_000,
                     infill_iterations=25_000,
                     num_infill_points=1,

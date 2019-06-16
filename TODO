@@ -1,10 +1,6 @@
 ########## TODO
 
-##  Add tests for all functions where appropriate
-
 ##  Examples for different optimisation cases
-
-##  Add test for std needing more than 1 surrogate
 
 ##  Results printing
 
@@ -14,15 +10,7 @@
 
 ##  Categorical optimisation
 
-##  Add test for parallel and not parallel
-
-##  Add test for all combinations of RBF options
-
-##  Add contribution file
-
 ##  List of all optional arguments and their function
-
-##  Try big benchmark fun without rippa
 
 ########## IMPROVEMENTS
 

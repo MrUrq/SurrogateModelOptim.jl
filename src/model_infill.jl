@@ -25,12 +25,13 @@ cycling through the infill objective functions.
 function model_infill(search_range::Vector{Tuple{Float64,Float64}},plan::AbstractArray{T,2},
         samples::AbstractArray{T,2},sm_interpolant; options::Options=Options()) where T
 
-    @unpack rbf_opt_gens, num_interpolants, num_infill_points,
-            trace, infill_funcs, infill_iterations = options
+    @unpack rbf_opt_gens, num_infill_points, trace,
+            infill_funcs, infill_iterations = options
         
     trace && print_infill_head() 
 
     (length(samples) != size(plan,2)) && error("plan and samples do not have the correct sizes")
+    ((length(sm_interpolant(plan[:,1])) == 1) && (any(infill_funcs.==:std))) && error(":std infill criteria can not be used with one interpolant")
     
     # Extract the requested infill objective functions
     infill_obj_fun = infill_objective(sm_interpolant,plan,samples,infill_funcs)

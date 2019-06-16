@@ -6,5 +6,6 @@
     samples = mapslices(sum,plan,dims=1)
 
     #Make sure correct input format is used
-    @test_throws ErrorException surrogate_model(permutedims(plan),samples)
+    @test_throws ErrorException surrogate_model(permutedims(plan),samples;
+    options=SurrogateModelOptim.Options(trace=false))
 end
