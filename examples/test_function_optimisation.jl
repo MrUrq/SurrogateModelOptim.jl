@@ -1,19 +1,26 @@
 using SurrogateModelOptim
 using PlotlyJS
 using Statistics
+using Distributed
 dir_path = @__DIR__ 
 include(joinpath(dir_path,"test_functions.jl"))
+
+if !(@isdefined loaded)
+    loaded = true    
+    addprocs(20)
+end 
+@everywhere using SurrogateModelOptim
 
 # Optimize the test function
 func = test_funs[:rosenbrock_2D]
 result = smoptimize(func.fun, func.sr;
                     options=SurrogateModelOptim.Options(
-                    iterations=7,
-                    num_interpolants=2, #Preferably even number of added processes
+                    iterations=25,
+                    num_interpolants=20, #Preferably even number of added processes
                     num_start_samples=5,
                     rbf_opt_gens=50_000,
-                    infill_iterations=50_000,
-                    num_infill_points=3,
+                    infill_iterations=25_000,
+                    num_infill_points=1,
                     trace=true,
                         ));
 

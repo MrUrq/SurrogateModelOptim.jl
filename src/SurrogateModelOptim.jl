@@ -5,7 +5,6 @@ export  smoptimize,
         model_infill,
         scaled_LHC_sampling_plan
 
-
 using LatinHypercubeSampling
 import LatinHypercubeSampling.Continuous, LatinHypercubeSampling.Categorical 
 using ScatteredInterpolation
@@ -22,12 +21,10 @@ using Printf
 
 include("types.jl")
 include("LHC_sampling_plan.jl")
-include("rbf_hypers_opt_utilities.jl")
-include("rbf_hypers_opt.jl")
-include("sample_infill_utilities.jl")
-include("sample_infill.jl")
-include("scaling.jl")
+include("model_infill_utilities.jl")
+include("model_infill.jl")
+include("surrogate_model_utilities.jl")
+include("surrogate_model.jl")
 include("smoptimize.jl")
-include("search_range.jl")
 
 end # module
