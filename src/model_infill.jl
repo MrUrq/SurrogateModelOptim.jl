@@ -1,6 +1,6 @@
 """
-    model_infill(search_range::Vector{Tuple{Float64,Float64},plan::AbstractArray{T,2},
-            samples::AbstractArray{T,2},sm_interpolant,criteria,options) where T
+    model_infill(search_range::Vector{Tuple{Float64,Float64}},plan::AbstractArray{T,2},
+    samples::AbstractArray{T,2},sm_interpolant; options::Options=Options()) where T
 
 Infill function that takes calculates the location of new samples based 
 on the supplied options. The returned options are updated updated to facilitate

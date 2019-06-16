@@ -1,5 +1,5 @@
 """
-    function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; options=Options())
+    smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; options=Options())
 
 Optimize the function `f` in the range `search_range` using a Radial Basis Function based surrogate model.
 """
@@ -25,13 +25,8 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; 
 
     #Run the entire optimization iterations number of times
     for i = 1:iterations
-        if trace
-            print("\n \n \n \t Iteration ")
-            printstyled(i,bold=true)
-            print(" out of ", iterations, "\n")
-        end
-
-
+        trace && print_iteration(i,iterations)
+        
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
         plan_all = [lhc_plan infill_plan]
@@ -58,16 +53,14 @@ function smoptimize(f::Function, search_range::Array{Tuple{Float64,Float64},1}; 
 end
 
 """
-    function f_opt_eval(f,plan,samples,trace)
+    f_opt_eval(f,plan,samples,trace)
 
 Calculate the objective function value(s) and provide intermediate results printing
 showing improvements over previous best iteration.
 """
 function f_opt_eval(f,plan,samples,trace)
 
-    if trace
-        println("Evaluating function ",size(plan,2)," times ...")
-    end
+    trace && println("Evaluating function ",size(plan,2)," times ...")
 
     new_samples = mapslices(f,plan,dims=1) 
 
@@ -105,15 +98,13 @@ function f_opt_eval(f,plan,samples,trace)
 end
 
 """
-    function f_opt_eval(f,plan,trace)
+    f_opt_eval(f,plan,trace)
 
 Calculate the objective function value(s) and plot value if trace.
 """
 function f_opt_eval(f,plan,trace)
 
-    if trace
-        println("Evaluating function ",size(plan,2)," times ...")
-    end
+    trace && println("Evaluating function ",size(plan,2)," times ...")
 
     new_samples = mapslices(f,plan,dims=1) 
 
@@ -132,3 +123,13 @@ function f_opt_eval(f,plan,trace)
     return new_samples
 end
 
+"""
+    print_iteration(i,iterations)
+
+REPL printing of the current iteration if trace.
+"""
+function print_iteration(i,iterations)
+    print("\n \n \n \t Iteration ")
+    printstyled(i,bold=true)
+    print(" out of ", iterations, "\n")
+end

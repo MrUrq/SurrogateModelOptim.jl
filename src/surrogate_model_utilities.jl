@@ -95,9 +95,6 @@ function RMSErrorLOO!(E, A, ests, LOOinds, interp::U,
     return RMSE
 end
 
-
-
-
 function RMSErrorLOO!(E, A, ests, LOOinds, interp, samples, plan::T, smooth;
  cond_max::Float64=1e6, rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray
 
@@ -180,7 +177,11 @@ end
 
 _scale(x::Missing,min_val,max_val;old_min,old_max) = missing
 
+"""
+    preprocess_point(points,optres;base_scale::Array{Float64,2})
 
+Scales the input points in order to evaluate the adaptively scaled RBF correctly.
+"""
 function preprocess_point(points,optres;base_scale::Array{Float64,2})
 
     old_min = minimum(base_scale,dims=2)
@@ -195,6 +196,11 @@ function preprocess_point(points,optres;base_scale::Array{Float64,2})
     return preprocessed_point
 end
 
+"""
+    preprocess_point!(preprocessed_point,points,optres;old_min::Array{Float64,2},old_max::Array{Float64,2})
+
+Scales the input points in order to evaluate the adaptively scaled RBF correctly.
+"""
 function preprocess_point!(preprocessed_point,points,optres;old_min::Array{Float64,2},old_max::Array{Float64,2})
 
     for i = 1:size(preprocessed_point,1)
@@ -204,114 +210,227 @@ function preprocess_point!(preprocessed_point,points,optres;old_min::Array{Float
     return preprocessed_point
 end
 
+"""
+    preprocess_point!(preprocessed_point,points,optres::SurrogateModelOptim.RBFHypers{Bool,U};old_min::Array{Float64,2},old_max::Array{Float64,2}) where U
+
+Scales the input points in order to evaluate the adaptively scaled RBF correctly.
+"""
 function preprocess_point!(preprocessed_point,points,optres::SurrogateModelOptim.RBFHypers{Bool,U};old_min::Array{Float64,2},old_max::Array{Float64,2}) where U
     preprocessed_point = points
 end
 
+"""
+    preprocess_point(points,optres::SurrogateModelOptim.RBFHypers{Bool,U};base_scale::Array{Float64,2}) where U
+
+Scales the input points in order to evaluate the adaptively scaled RBF correctly.
+"""
 function preprocess_point(points,optres::SurrogateModelOptim.RBFHypers{Bool,U};base_scale::Array{Float64,2}) where U
     points    
 end
 
+"""
+    construct_search_range(plan::Array{Float64,2}, variable_kernel_width,
+    min_rbf_width, max_rbf_width, variable_dim_scaling,
+    min_scale, max_scale, smooth, max_smooth)
+    
+Creates array of tuples for the optimisation of the RBF hyperparameters.
+"""
 function construct_search_range(plan::Array{Float64,2}, variable_kernel_width,
     min_rbf_width, max_rbf_width, variable_dim_scaling,
     min_scale, max_scale, smooth, max_smooth)
 
-n_dims, n_samples = size(plan)
-sr = Array{Tuple{Float64,Float64},1}()
+    n_dims, n_samples = size(plan)
+    sr = Array{Tuple{Float64,Float64},1}()
 
 
-# Add the kernel width and type search range
-variable_kernel_width ? n_kerns = n_samples : n_kerns = 1    
-push!(sr,   create_sr(  (min_range=min_rbf_width, max_range=max_rbf_width, n_times=n_kerns),
-(min_range=0.0, max_range=1.0, n_times=n_kerns))...)
+    # Add the kernel width and type search range
+    variable_kernel_width ? n_kerns = n_samples : n_kerns = 1    
+    push!(sr,   create_sr(  (min_range=min_rbf_width, max_range=max_rbf_width, n_times=n_kerns),
+    (min_range=0.0, max_range=1.0, n_times=n_kerns))...)
 
-# Add the dimensional scaling search range
-variable_dim_scaling ? n_dim_scales = n_dims : n_dim_scales = 0
-push!(sr,   create_sr(  (min_range=min_scale, max_range=max_scale, n_times=n_dim_scales))...)
+    # Add the dimensional scaling search range
+    variable_dim_scaling ? n_dim_scales = n_dims : n_dim_scales = 0
+    push!(sr,   create_sr(  (min_range=min_scale, max_range=max_scale, n_times=n_dim_scales))...)
 
-# Add the ridge regression smoothing search range
-(smooth == :variable) && (n_smooth = n_samples)
-(smooth == :single)   && (n_smooth = 1)
-(smooth == :single_user)   && (n_smooth = 0)
-(smooth == false)     && (n_smooth = 0)
-push!(sr,   create_sr(  (min_range=0.0, max_range=max_smooth, n_times=n_smooth))...)
+    # Add the ridge regression smoothing search range
+    (smooth == :variable) && (n_smooth = n_samples)
+    (smooth == :single)   && (n_smooth = 1)
+    (smooth == :single_user)   && (n_smooth = 0)
+    (smooth == false)     && (n_smooth = 0)
+    push!(sr,   create_sr(  (min_range=0.0, max_range=max_smooth, n_times=n_smooth))...)
 
-return sr
+    return sr
 end
 
+"""
+    create_sr(vargs::NamedTuple{(:min_range, :max_range, :n_times),Tuple{Float64,Float64,Int64}}...)
+
+Facilitate the creation of array of tuples for the optimisation of the RBF hyperparameters.
+"""
 function create_sr(vargs::NamedTuple{(:min_range, :max_range, :n_times),Tuple{Float64,Float64,Int64}}...)
-sr = Array{Tuple{Float64,Float64},1}()
-for varg in vargs
-for i = 1:varg[3]
-push!(sr,(varg[1],varg[2]))
-end
-end        
-return sr
+    sr = Array{Tuple{Float64,Float64},1}()
+    for varg in vargs
+        for i = 1:varg[3]
+            push!(sr,(varg[1],varg[2]))
+        end
+    end        
+    return sr
 end
 
+"""
+    extract_vector_range(vargs::Int64...)   
+
+Supply length of subsets contained in a vector and receive a tuple containing
+all the ranges needed to extract each subset in the vector.
+"""
 function extract_vector_range(vargs::Int64...)    
-output = Array{Any,1}()
+    output = Array{Any,1}()
 
-count = 0
-for (i,varg) in enumerate(vargs)
-if varg == 0
-push!(output, false)
-else
-push!(output, (count+1):(count+varg))
-count += varg      
-(length(output[end]) == 1) && (output[end] = output[end][1])
-end
-end
-return Tuple(output)
+    count = 0
+    for (i,varg) in enumerate(vargs)
+        if varg == 0
+            push!(output, false)
+        else
+            push!(output, (count+1):(count+varg))
+            count += varg      
+            (length(output[end]) == 1) && (output[end] = output[end][1])
+        end
+    end
+    return Tuple(output)
 end
 
+"""
+    extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,
+    variable_kernel_width,variable_dim_scaling,
+    smooth,smooth_user)   
+
+Get the optimised RBF hyperparameters in useful format for further use.
+"""
 function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,
     variable_kernel_width,variable_dim_scaling,
     smooth,smooth_user)
 
-n_dims, n_samples = size(plan)
+    n_dims, n_samples = size(plan)
 
-# Kernel width and type length
-variable_kernel_width ? n_kerns = n_samples : n_kerns = 1    
+    # Kernel width and type length
+    variable_kernel_width ? n_kerns = n_samples : n_kerns = 1    
 
-# Dimensional scaling length
-variable_dim_scaling ? n_dim_scales = n_dims : n_dim_scales = 0
+    # Dimensional scaling length
+    variable_dim_scaling ? n_dim_scales = n_dims : n_dim_scales = 0
 
-# Ridge regression smoothing length
-(smooth == :variable) && (n_smooth = n_samples)
-(smooth == :single)   && (n_smooth = 1)
-(smooth == :single_user)   && (n_smooth = 0)
-(smooth == false)     && (n_smooth = 0)
+    # Ridge regression smoothing length
+    (smooth == :variable) && (n_smooth = n_samples)
+    (smooth == :single)   && (n_smooth = 1)
+    (smooth == :single_user)   && (n_smooth = 0)
+    (smooth == false)     && (n_smooth = 0)
 
-width_inds, kernel_float_inds, scaling_inds, smooth_inds = extract_vector_range(n_kerns,
-                                                        n_kerns,
-                                                        n_dim_scales,
-                                                        n_smooth
-                                                        )
+    width_inds, kernel_float_inds, scaling_inds, smooth_inds = extract_vector_range(n_kerns,
+                                                            n_kerns,
+                                                            n_dim_scales,
+                                                            n_smooth
+                                                            )
 
-# Arrange the width and smoothing results
-width = bboptim_fcall_vector[width_inds]
-kernel_float = bboptim_fcall_vector[kernel_float_inds]
-!(scaling_inds == false) ? scaling = bboptim_fcall_vector[scaling_inds] : scaling = scaling_inds
-(smooth == false) &&            (smooth = smooth_inds)
-(smooth == :single) &&          (smooth = bboptim_fcall_vector[smooth_inds])
-(smooth == :variable) &&        (smooth = bboptim_fcall_vector[smooth_inds])
-(smooth == :single_user) &&     (smooth = smooth_user)
+    # Arrange the width and smoothing results
+    width = bboptim_fcall_vector[width_inds]
+    kernel_float = bboptim_fcall_vector[kernel_float_inds]
+    !(scaling_inds == false) ? scaling = bboptim_fcall_vector[scaling_inds] : scaling = scaling_inds
+    (smooth == false) &&            (smooth = smooth_inds)
+    (smooth == :single) &&          (smooth = bboptim_fcall_vector[smooth_inds])
+    (smooth == :variable) &&        (smooth = bboptim_fcall_vector[smooth_inds])
+    (smooth == :single_user) &&     (smooth = smooth_user)
 
+    # Arrange the RBF kernel result
+    kern_ind = round.(Int,_scale(kernel_float,1,length(kerns),old_min=0,old_max=1))
+    if variable_kernel_width
+        kern = Vector{ScatteredInterpolation.RadialBasisFunction}(undef,size(plan,2))
+        for i = 1:size(plan,2)
+            kern[i] = kerns[kern_ind[i]](width[i])
+        end
+    elseif !variable_kernel_width
+        kern = kerns[kern_ind](width)
+    end
 
-
-# Arrange the RBF kernel result
-kern_ind = round.(Int,_scale(kernel_float,1,length(kerns),old_min=0,old_max=1))
-if variable_kernel_width
-kern = Vector{ScatteredInterpolation.RadialBasisFunction}(undef,size(plan,2))
-for i = 1:size(plan,2)
-kern[i] = kerns[kern_ind[i]](width[i])
-end
-elseif !variable_kernel_width
-kern = kerns[kern_ind](width)
-end
-
-return kern, scaling, smooth
+    return kern, scaling, smooth
 end
 
+"""
+    interp_obj(inpt::Vector{Float64}, kerns, samples,
+    plan::Array{Float64,2}; rippa::Bool = false,
+    variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
+    smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
+    smooth_user::Float64 = 0.0)
 
+Objective function for optimisation of interpolation kernel function and width.
+"""
+function interp_obj(inpt::Vector{Float64}, kerns, samples,
+        plan::Array{Float64,2}; rippa::Bool = false,
+        variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
+        smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
+        smooth_user::Float64 = 0.0)
+
+    
+    kern, scaling, smooth = extract_bboptim_hypers( inpt,plan,kerns,variable_kernel_width,
+                                                    variable_dim_scaling,smooth,
+                                                    smooth_user)
+    
+    optres = RBFHypers(kern, scaling, smooth)
+
+    #Preprocess the plan based on the settings used.
+    preprocessed_plan = preprocess_point(plan,optres,base_scale=plan)
+    
+    #Wrapped in try catch-block to catch failure to solve linear eq. system
+    E = try
+        E = RMSErrorLOO(kern, samples, preprocessed_plan, smooth; rippa = rippa,
+        cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
+    catch 
+        E = Inf
+    end
+
+    return E
+end
+
+"""
+    rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
+
+Optimisation function of Radial Basis Function kernel and width.
+"""
+function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
+    
+    @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
+            min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
+            rbf_dist_metric, rbf_opt_gens, kerns, rbf_opt_pop,
+            smooth, max_smooth, smooth_user = options
+
+    samples = vec(samples_org)
+
+
+    # Create the hyperparameter search range based on the input options 
+    sr = construct_search_range(plan, variable_kernel_width,
+                                min_rbf_width, max_rbf_width, variable_dim_scaling,
+                                min_scale, max_scale, smooth, max_smooth)
+
+    # RBF hyperparameter objective function
+    itp_obj = function (x)
+        interp_obj(x,kerns,samples,plan; 
+                rippa=rippa, variable_kernel_width=variable_kernel_width,
+                variable_dim_scaling=variable_dim_scaling, smooth=smooth,
+                cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,)
+    end
+
+    # Optimize the interpolant hyperparameters
+    res = bboptimize(itp_obj; 
+            Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
+            TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
+            TargetFitness = 1e-5, FitnessTolerance = 1e-6,
+            PopulationSize = rbf_opt_pop,
+            MaxStepsWithoutProgress=rbf_opt_gens,
+            MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
+            );
+        
+    kern, scaling, smooth = extract_bboptim_hypers( res.archive_output.best_candidate,
+                                                    plan,kerns,variable_kernel_width,
+                                                    variable_dim_scaling,smooth,smooth_user)
+
+    # Return the optimized hyperparameters in the correct type
+    return RBFHypers(kern, scaling, smooth)
+end

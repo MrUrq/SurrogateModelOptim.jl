@@ -119,6 +119,12 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
     return infill_obj_fun
 end
 
+"""
+    closest_index(x_val, vals) 
+
+Based on the allowed categorical values, returns the index to the point closest
+to `x_val`.
+"""
 function closest_index(x_val, vals) 
             
     ibest = first(eachindex(vals)) 
@@ -133,6 +139,12 @@ function closest_index(x_val, vals)
     ibest 
 end 
 
+"""
+    colinmat(mat,vec)
+
+Check if the vector `vec` exits as a column in `mat`. Greedy implementation
+potentially not fit for high speed applications of large matrices. 
+"""
 function colinmat(mat,vec)
     for column in eachcol(mat)
         all(column .== vec) && return true
@@ -141,10 +153,10 @@ function colinmat(mat,vec)
 end
 
 """
-    infill_opt(search_range,infill_iterations,infill_obj_fun,infill_funcs)
+    infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_fun,infill_funcs,plan,sm_interpolant,options)
 
-Returns the infill objective function based on the names supplied 
-in `infill_funcs`. Choose from `[:min,:median,:mean,:dist,:std]`.
+Optimises the infill points based on the supplied `infill_funcs` criteria.
+Does not allow duplicated points.
 """
 function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_fun,infill_funcs,plan,sm_interpolant,options)
     # Try generating pareto optimal infill points. Wrapped in try block due to 
@@ -196,6 +208,16 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     return infill_plan,infill_type,infill_prediction,res_bboptim,options
 end
 
+"""
+    infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,infill_plan,infill_type,num_infill_points,infill_obj_fun,infill_funcs,res_bboptim)
+    
+Adds additional sample points if the `infill_opt` can't supply the number of 
+requested infill points. First a pareto optimal point based on the infill 
+functions is selected. The pareto point furthest away from all existing points 
+is selected. If this fails the last points are added as randomly selected points
+to ensure that the requested number of infill points is added. Does not allow
+duplicated points.
+"""
 function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,infill_plan,infill_type,num_infill_points,infill_obj_fun,infill_funcs,res_bboptim)
     
     for i = 1:(num_infill_points-size(infill_plan,2)) 

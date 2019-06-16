@@ -1,94 +1,21 @@
 """
-    interp_obj(inpt::Vector{Float64}, kerns, samples,
-    plan::Array{Float64,2}; rippa::Bool = false,
-    variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
-    smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
-    smooth_user::Float64 = 0.0)
+    surrogate_model(samples::AbstractArray{T,2}, plan::AbstractArray{T,2}; options=Options()) where T
 
-Objective function for optimisation of interpolation kernel function and width.
-"""
-function interp_obj(inpt::Vector{Float64}, kerns, samples,
-        plan::Array{Float64,2}; rippa::Bool = false,
-        variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
-        smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
-        smooth_user::Float64 = 0.0)
+Returns surrogate model that is a function based on an optimised Radial Basis Function
+interpolant. Depending on the options, the kernel, kernel width and scaling of 
+input data is optimised.
 
-    
-    kern, scaling, smooth = extract_bboptim_hypers( inpt,plan,kerns,variable_kernel_width,
-                                                    variable_dim_scaling,smooth,
-                                                    smooth_user)
-    
-    optres = RBFHypers(kern, scaling, smooth)
-
-    #Preprocess the plan based on the settings used.
-    preprocessed_plan = preprocess_point(plan,optres,base_scale=plan)
-    
-    #Wrapped in try catch-block to catch failure to solve linear eq. system
-    E = try
-        E = RMSErrorLOO(kern, samples, preprocessed_plan, smooth; rippa = rippa,
-        cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
-    catch 
-        E = Inf
-    end
-
-    return E
-end
-
-"""
-    rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
-
-Optimisation function of Radial Basis Function kernel and width.
-"""
-function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
-    
-    @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
-            min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
-            rbf_dist_metric, rbf_opt_gens, kerns, rbf_opt_pop,
-            smooth, max_smooth, smooth_user = options
-
-    samples = vec(samples_org)
-
-
-    # Create the hyperparameter search range based on the input options 
-    sr = construct_search_range(plan, variable_kernel_width,
-                                min_rbf_width, max_rbf_width, variable_dim_scaling,
-                                min_scale, max_scale, smooth, max_smooth)
-
-    # RBF hyperparameter objective function
-    itp_obj = function (x)
-        interp_obj(x,kerns,samples,plan; 
-                rippa=rippa, variable_kernel_width=variable_kernel_width,
-                variable_dim_scaling=variable_dim_scaling, smooth=smooth,
-                cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,)
-    end
-
-    # Optimize the interpolant hyperparameters
-    res = bboptimize(itp_obj; 
-            Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
-            TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
-            TargetFitness = 1e-5, FitnessTolerance = 1e-6,
-            PopulationSize = rbf_opt_pop,
-            MaxStepsWithoutProgress=rbf_opt_gens,
-            MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
-            );
-        
-    kern, scaling, smooth = extract_bboptim_hypers( res.archive_output.best_candidate,
-                                                    plan,kerns,variable_kernel_width,
-                                                    variable_dim_scaling,smooth,smooth_user)
-
-    # Return the optimized hyperparameters in the correct type
-    return RBFHypers(kern, scaling, smooth)
-end
-
-
-
-
-"""
-    surrogate_model(samples, plan; options=Options())
-
-Returns function based on optimised an optimised Radial Basis Function.
-Depending on the options the kernel and width and scaling of data is 
-optimised.
+...
+# Arguments
+- `plan::AbstractArray{T,2}`: 
+    sample locations where each column corresponds to the location of one point.
+    `size(plan) = (num_dimensions,num_samples)`.
+- `samples::AbstractArray{T,2}`:
+    function value at each sample location. each column contains one value from
+    the corresponding plan location. `size(samples) = (1,num_samples)`.
+- `options=Options()`: 
+    all options available to customize the surrogate optimisation.  
+...
 """
 function surrogate_model(samples, plan; options::Options=Options())
 

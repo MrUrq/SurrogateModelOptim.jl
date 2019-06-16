@@ -1,10 +1,8 @@
 ########## TODO
 
-##  Add doc string to the module
-
-##  Add doc string to the internal types
-
 ##  Doc strings for all functions, add comments where appropriate
+
+##  Remove minimum from output of infill objectives
 
 ##  Add tests for all functions where appropriate
 
@@ -21,6 +19,12 @@
 ##  Call and continue optimisation with the results type.
 
 ##  Documentation with PlotlyJS web based plots for easy viewing of different options. 
+
+##  Check that the header of each function fits the function call signature
+
+##  Categorical optimisation
+
+##  Add test for parallel and not parallel
 
 
 ########## IMPROVEMENTS
