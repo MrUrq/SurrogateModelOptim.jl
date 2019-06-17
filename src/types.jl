@@ -4,13 +4,13 @@
 Options configurable by the user with recommended default values.
 """
 @with_kw struct Options
-    num_start_samples::Int = 10
+    num_start_samples::Int = 5
     trace::Bool = true
     sampling_plan_opt_gens::Int = 1000
     rippa::Bool = true
     kerns = [ScatteredInterpolation.Gaussian, ScatteredInterpolation.InverseQuadratic,
              ScatteredInterpolation.InverseMultiquadratic]
-    rbf_opt_gens::Int = 25_000
+    rbf_opt_gens::Int = 50_000
     rbf_opt_pop::Int = 50
     rbf_opt_method::Symbol = :de_rand_1_bin_radiuslimited
     rbf_dist_metric = Distances.Euclidean()
@@ -28,8 +28,8 @@ Options configurable by the user with recommended default values.
     iterations::Int64 = 10
     num_infill_points::Int64 = 1
     parallel_surrogate::Bool = true
-    infill_funcs::Array{Symbol,1} = [:std,:median]
-    infill_iterations::Int64 = 10_000
+    infill_funcs::Array{Symbol,1} = [:median,:std]
+    infill_iterations::Int64 = 25_000
 
     @assert ((smooth == false) || (smooth == :variable) || 
     (smooth == :single) || (smooth == :single_user)) "Not supported option for smooth"

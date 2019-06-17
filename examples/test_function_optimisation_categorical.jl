@@ -1,78 +1,39 @@
-# using Distributed
 using LatinHypercubeSampling
 using PlotlyJS
 using Statistics
+using SurrogateModelOptim
+using Parameters
 
-# if !(@isdefined loaded)
-#     loaded = true    
-#     addprocs(20)
-# end 
-# @everywhere using SurrogateModelOptim
-    
-
-
-dir_path = @__DIR__ 
-include(joinpath(dir_path,"test_functions.jl"))
-
-options = SurrogateModelOptim.Options(
-    iterations=5, num_interpolants=2, #Preferably even number of added processes
-    num_start_samples=4, rbf_opt_gens=50, infill_iterations=50,
-    num_infill_points=1, trace=true, categorical=true,
-    variable_kernel_width=false,
-    variable_dim_scaling=true,
-    infill_funcs = [:std,:median]
+options=SurrogateModelOptim.Options(
+    iterations=25,
+    num_interpolants=20, #Preferably even number of added processes
+    num_start_samples=5,
         )
     
-brute = false
+function rosenbrock_2D(x)
+    return (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
+end
 
+search_range=[(-5.0,5.0),(-5.0,5.0)]
 
-# # Optimize the test function
-# # Create optimised categorical sampling plan with Categorical(x) possible values in 1:y dimensions
-# func = test_funs[:rosenbrock_9D]
-# possible_locs = 20
-# dims = [Categorical(possible_locs) for i in 1:length(func.sr)]
-# vals = [Tuple((i for i in range(-5.0,stop=5.0,length=possible_locs))) for i in 1:length(func.sr)] 
+possible_locs = 20 #Defined the possible design locations from -5,5
+dims = [LatinHypercubeSampling.Categorical(possible_locs) for i in 1:length(search_range)]
+vals = [Tuple((i for i in range(-5.0,stop=5.0,length=possible_locs))) for i in 1:length(search_range)] 
 
-# Optimize the test function
-# Create optimised categorical sampling plan with Categorical(x) possible values in 1:y dimensions
-func = test_funs[:rosenbrock_2D]
-possible_locs = 20
-dims = [LatinHypercubeSampling.Categorical(possible_locs) for i in 1:length(func.sr)]
-vals = [Tuple((i for i in range(-5.0,stop=5.0,length=possible_locs))) for i in 1:length(func.sr)] 
+function categorical_smoptimize(f,search_range,dims,vals,options)
 
-
-
-
-function closest_index(x_val, vals) 
-            
-    ibest = first(eachindex(vals)) 
-    dxbest = abs(vals[ibest]-x_val) 
-    for I in eachindex(vals) 
-        dx = abs(vals[I]-x_val) 
-        if dx < dxbest 
-            dxbest = dx 
-            ibest = I 
-        end     
-    end 
-    ibest 
-end 
-
-function categorical_smoptimize(func,options,dims,brute,vals)
-
-    #Print the known minimum (bruteforce approach)
+    #Print the known minimum (brute force approach)
     possible_designs = collect(Base.Iterators.product(vals...))    
     println("Number of possible designs = ", length(possible_designs))
-    min_loc = argmin(func.fun.(possible_designs))
-    max_loc = argmax(func.fun.(possible_designs))
+    min_loc = argmin(f.(possible_designs))
+    max_loc = argmax(f.(possible_designs))
     println("Minimum and maximum value in categorical design space:")
-    println("Min ",func.fun(possible_designs[min_loc]), ", ", possible_designs[min_loc])
-    println("Max ",func.fun(possible_designs[max_loc]), ", ", possible_designs[max_loc])
+    println("Min ",f(possible_designs[min_loc]), ", ", possible_designs[min_loc])
+    println("Max ",f(possible_designs[max_loc]), ", ", possible_designs[max_loc])
 
-    #Load some optional argument values
+    #Load some option values
     @unpack num_start_samples, sampling_plan_opt_gens,
-    iterations, trace = options
-
-    search_range = func.sr
+            iterations, trace = options
     
     #Create categorical sampling plan with the values in vals
     initialSample = randomLHC(num_start_samples,dims)
@@ -83,53 +44,43 @@ function categorical_smoptimize(func,options,dims,brute,vals)
             lhc_plan[i,j] = vals[i][Xind[i,j]]
         end
     end
-
+    
     #Evaluate sampling plan
-    lhc_samples = SurrogateModelOptim.f_opt_eval(func.fun,lhc_plan,trace)
-    criteria = 1
+    lhc_samples = SurrogateModelOptim.f_opt_eval(f,lhc_plan,trace)
 
     #Initialize variables to be returned
     sm_interpolant = nothing
-    sm_interpolant_cat = nothing
     infill_type = Array{Symbol,1}(undef,0)
     infill_prediction = Array{Float64,1}(undef,0)
     optres = nothing
     infill_plan = Array{Float64,2}(undef,size(lhc_plan,1),0)
     infill_sample = Array{Float64,2}(undef,1,0)
 
-    #Run the optimization iterations number of times
+    #Run the entire optimization iterations number of times
     for i = 1:iterations
-        if trace
-            print("\n \n \n \t Iteration ")
-            printstyled(i,bold=true)
-            print(" out of ", iterations, "\n")
-        end
-
+        trace && SurrogateModelOptim.print_iteration(i,iterations)
+        
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
         plan_all = [lhc_plan infill_plan]
-        sm_interpolant, optres = SurrogateModelOptim.surrogate_model(samples_all, plan_all; options=options)
+        sm_interpolant, optres = SurrogateModelOptim.surrogate_model(plan_all, samples_all; options=options)
 
-        
-        sm_interpolant_cat = function (x,vals)
-            xc = copy(x)
-            for (i,x_val) in enumerate(xc)
-                c_ind = closest_index(x_val, vals[i])
-                xc[i] = vals[i][c_ind]
+        #Choose the closest categorical value when evaluating the function. Note
+        # this alters the input of x to match closest value.
+        sm_interpolant_cat! = function (x,vals)            
+            for (i,x_val) in enumerate(x)
+                c_ind = SurrogateModelOptim.closest_index(x_val, vals[i])
+                x[i] = vals[i][c_ind]
             end
-            return sm_interpolant(xc)
+            return sm_interpolant(x)
         end
-
-        #Points to add to the sampling plan to improve the interpolant        
-        infill_plan_new, criteria, infill_type_new, infill_prediction_new  = 
-        if brute
-            SurrogateModelOptim.model_infill_brute(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria;options=options)
-        else
-            SurrogateModelOptim.model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat(x,vals),vals,criteria;options=options)
-        end
-
+        
+        #Points to add to the sampling plan to improve the interpolant
+        infill_plan_new, infill_type_new, infill_prediction_new, options  = 
+            model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat!(x,vals);options=options)
+            
         #Evaluate the new infill points
-        infill_sample_new = SurrogateModelOptim.f_opt_eval(func.fun,infill_plan_new,samples_all,trace)
+        infill_sample_new = SurrogateModelOptim.f_opt_eval(f,infill_plan_new,samples_all,trace)
 
         #Add infill points
         infill_plan = [infill_plan infill_plan_new]
@@ -137,18 +88,12 @@ function categorical_smoptimize(func,options,dims,brute,vals)
         infill_type = [infill_type; infill_type_new]
         infill_prediction = [infill_prediction; infill_prediction_new]
     end   
-
-    return SurrogateModelOptim.SurrogateResult( lhc_samples, lhc_plan,                                   #x->sm_interpolant_cat(x,vals),
-                    sm_interpolant,
-                    optres, infill_sample, infill_type,
-                    infill_plan, infill_prediction,options)
+    
+    return SurrogateModelOptim.SurrogateResult( lhc_samples, lhc_plan, sm_interpolant,
+                            optres, infill_sample, infill_type,
+                            infill_plan, infill_prediction,options)
 end
-
-
-# This runs num_start_samples + (iterations*num_infill_points) function
-# evaluations in total.
-result = categorical_smoptimize(func,options,dims,brute,vals)
-
+result = categorical_smoptimize(rosenbrock_2D,search_range,dims,vals,options)
 
 function plot_fun_2D(fun,sr,title)    
     N = 51    
@@ -163,10 +108,6 @@ function plot_fun_2D(fun,sr,title)
     p = plot(trace,layout) 
 end
 
-# Plot the results if the optimised function is 2-dimensional
-if length(func.sr) == 2
-    display(plot_fun_2D(func.fun,func.sr,"Original function"))
-    display(plot_fun_2D(x->median(result.sm_interpolant(x)),func.sr,"Estimated function"))
-end
-
-return true
+# Plot the results 
+display(plot_fun_2D(rosenbrock_2D,search_range,"Original function"))
+display(plot_fun_2D(x->median(result.sm_interpolant(x)),search_range,"Estimated function"))

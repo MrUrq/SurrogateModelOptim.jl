@@ -1,19 +1,10 @@
 ########## TODO
 
-##  Examples for different optimisation cases. Include noise, categorical and 
-    poor discontinuous performance.
-
-##  Results printing
-
-##  Call and continue optimisation with the results type.
-
 ##  Documentation with PlotlyJS web based plots for easy viewing of different options. 
 
 ##  List of all optional arguments and their function
 
-##  Add benchmark result files
-
-########## IMPROVEMENTS
+########## Potential speed improvements
 
 ##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
 
@@ -28,3 +19,9 @@
 ##  Try optimizing widths by optimizing a subset before optimizing the entire range.
 
 ##  Implement RBFs with sparse support to increase speed of solving linear eq. system.
+
+########## Wishlist
+
+##  Fancy results printing
+
+##  Call and continue optimisation with the results type.

@@ -1,46 +1,33 @@
 using SurrogateModelOptim
 using PlotlyJS
 using Statistics
+using Distributed
 using Random
-dir_path = @__DIR__ 
-include(joinpath(dir_path,"test_functions.jl"))
 
-func = test_funs[:rosenbrock_2D]
-noiselevel = (func.max_val-func.min_val)*0.1
+# Optimize the test function Rosenbrock
+function rosenbrock_2D(x)
+    return (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
+end
+search_range=[(-5.0,5.0),(-5.0,5.0)]
+fun_max = 90036.0
+fun_min = 0.0
+noiselevel = (fun_max-fun_min)*0.1 # 10% noise
 
-# Add deterministic noise which gives the same value each time the 
-# same point is sampled.
-opt_fun = function (x)
-    noise = 0
-    try
-        noise = noiselevel*rand(MersenneTwister(abs(sum(reinterpret(Int64,x)))))
-    catch 
-        noise = noiselevel*rand(MersenneTwister(1))
-    end
-    func.fun(x)-noiselevel/2+noise
+noisy_rosenbrock_2D = function (x)
+    rosenbrock_2D(x)-noiselevel/2+noiselevel*rand()
 end
 
-# Optimize the test function
-result = smoptimize(opt_fun, func.sr;
+result = smoptimize(noisy_rosenbrock_2D, search_range;
                     options=SurrogateModelOptim.Options(
-                    iterations=5,
-                    num_interpolants=2, #Preferably even number of added processes
+                    iterations=25,
+                    num_interpolants=20, #Preferably even number of added processes
                     num_start_samples=5,
-                    rbf_opt_gens=50,
-                    infill_iterations=50,
-                    num_infill_points=2,
-                    trace=true,
                         ));
 
-# This runs num_start_samples + (iterations*num_infill_points) function
-# evaluations in total.
-
-
 function plot_fun_2D(fun,sr,title)    
-    N = 100    
+    N = 51    
     x = range(sr[1][1], stop = sr[1][2], length = N)
     y = range(sr[2][1], stop = sr[2][2], length = N)
-
     grid(x,y) = [x,y]
     z = @. fun(grid(x,y'))
 
@@ -49,10 +36,6 @@ function plot_fun_2D(fun,sr,title)
     p = plot(trace,layout) 
 end
 
-# Plot the results if the optimised function is 2-dimensional
-if length(func.sr) == 2
-    display(plot_fun_2D(opt_fun,func.sr,"Original function"))
-    display(plot_fun_2D(x->median(result.sm_interpolant(x)),func.sr,"Estimated function"))
-end
-
-return true
+display(plot_fun_2D(noisy_rosenbrock_2D,search_range,"Original function with added noise"))
+display(plot_fun_2D(rosenbrock_2D,search_range,"Original function without noise"))
+display(plot_fun_2D(x->median(result.sm_interpolant(x)),search_range,"Estimated function"))

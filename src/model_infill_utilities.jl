@@ -125,8 +125,7 @@ end
 Based on the allowed categorical values, returns the index to the point closest
 to `x_val`.
 """
-function closest_index(x_val, vals) 
-            
+function closest_index(x_val, vals)             
     ibest = first(eachindex(vals)) 
     dxbest = abs(vals[ibest]-x_val) 
     for I in eachindex(vals) 
