@@ -1,6 +1,7 @@
 ########## TODO
 
-##  Examples for different optimisation cases
+##  Examples for different optimisation cases. Include noise, categorical and 
+    poor discontinuous performance.
 
 ##  Results printing
 
@@ -8,9 +9,9 @@
 
 ##  Documentation with PlotlyJS web based plots for easy viewing of different options. 
 
-##  Categorical optimisation
-
 ##  List of all optional arguments and their function
+
+##  Add benchmark result files
 
 ########## IMPROVEMENTS
 
@@ -18,7 +19,7 @@
 
 ##  Options to solve ScatteredInterpolation linear eq system on gpu.
 
-##  Use iterative solver on cpu with a much larger tolerance. Test if keeping 
+##  Use iterative solver on cpu with a larger tolerance. Test if keeping 
     the optimum settings from the previous iteration and using them as a seed
     improve convergence speed for the iterative solver. 
 
