@@ -6,7 +6,7 @@ Options configurable by the user with recommended default values.
 @with_kw struct Options
     num_start_samples::Int = 5
     trace::Bool = true
-    sampling_plan_opt_gens::Int = 1000
+    sampling_plan_opt_gens::Int = 5000
     rippa::Bool = true
     kerns = [ScatteredInterpolation.Gaussian, ScatteredInterpolation.InverseQuadratic,
              ScatteredInterpolation.InverseMultiquadratic]

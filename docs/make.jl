@@ -9,7 +9,7 @@ makedocs(;
     repo="https://github.com/MrUrq/SurrogateModelOptim.jl/blob/{commit}{path}#L{line}",
     sitename="SurrogateModelOptim.jl",
     authors="Magnus Urquhart",
-    #assets=[],
+    assets = ["assets/favicon.ico"],
 )
 
 deploydocs(;
