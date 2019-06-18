@@ -1,0 +1,27 @@
+########## TODO
+
+##  -
+
+########## Potential speed improvements
+
+##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
+
+##  Options to solve ScatteredInterpolation linear eq system on gpu.
+
+##  Use iterative solver on cpu with a larger tolerance. Test if keeping 
+    the optimum settings from the previous iteration and using them as a seed
+    improve convergence speed for the iterative solver. 
+
+##  Possibility to save entire optimisation state in an easy manner. 
+
+##  Try optimizing widths by optimizing a subset before optimizing the entire range.
+
+##  Implement RBFs with sparse support to increase speed of solving linear eq. system.
+
+########## Wishlist
+
+##  Fancy results printing
+
+##  Call and continue optimisation with the results type.
+
+##  Documentation with PlotlyJS web based plots for easy viewing of different options. 
