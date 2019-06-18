@@ -26,7 +26,7 @@ min_scale::Float64 = 1e-4                               # Minimum linear input d
 num_interpolants::Int = 20                              # Number of interpolants in ensemble
 smooth = :single                                        # Apply smoothing factor, useful for functions with noise
                                                         # false turned off, :single one factor for all points,
-                                                        # :variable individual factor for each points, 
+                                                        # :variable individual factor for each point, 
                                                         # :single_user user supplied value
 max_smooth::Float64 = 1.0                               # Maximum smoothing factor 
 smooth_user::Float64 = 0.0                              # User supplied smoothing factor, only applied if smooth = :single_user
