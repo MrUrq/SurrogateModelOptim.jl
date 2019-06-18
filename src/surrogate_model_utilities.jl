@@ -249,7 +249,7 @@ end
     min_rbf_width, max_rbf_width, variable_dim_scaling,
     min_scale, max_scale, smooth, max_smooth)
     
-Creates array of tuples for the optimisation of the RBF hyperparameters.
+Creates array of tuples for the optimization of the RBF hyperparameters.
 """
 function construct_search_range(plan::Array{Float64,2}, variable_kernel_width,
     min_rbf_width, max_rbf_width, variable_dim_scaling,
@@ -281,7 +281,7 @@ end
 """
     create_sr(vargs::NamedTuple{(:min_range, :max_range, :n_times),Tuple{Float64,Float64,Int64}}...)
 
-Facilitate the creation of array of tuples for the optimisation of the RBF hyperparameters.
+Facilitate the creation of array of tuples for the optimization of the RBF hyperparameters.
 """
 function create_sr(vargs::NamedTuple{(:min_range, :max_range, :n_times),Tuple{Float64,Float64,Int64}}...)
     sr = Array{Tuple{Float64,Float64},1}()
@@ -320,7 +320,7 @@ end
     variable_kernel_width,variable_dim_scaling,
     smooth,smooth_user)   
 
-Get the optimised RBF hyperparameters in useful format for further use.
+Get the optimized RBF hyperparameters in useful format for further use.
 """
 function extract_bboptim_hypers(bboptim_fcall_vector,plan,kerns,
     variable_kernel_width,variable_dim_scaling,
@@ -376,7 +376,7 @@ end
     smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
     smooth_user::Float64 = 0.0)
 
-Objective function for optimisation of interpolation kernel function and width.
+Objective function for optimization of interpolation kernel function and width.
 """
 function interp_obj(inpt::Vector{Float64}, kerns, samples,
         plan::Array{Float64,2}; rippa::Bool = false,
@@ -408,7 +408,7 @@ end
 """
     rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
 
-Optimisation function of Radial Basis Function kernel and width.
+Optimization function of Radial Basis Function kernel and width.
 """
 function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, options::Options)
     

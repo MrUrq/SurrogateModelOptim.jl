@@ -1,8 +1,6 @@
 ########## TODO
 
-##  Documentation with PlotlyJS web based plots for easy viewing of different options. 
-
-##  List of all optional arguments and their function
+##  -
 
 ########## Potential speed improvements
 
@@ -25,3 +23,5 @@
 ##  Fancy results printing
 
 ##  Call and continue optimisation with the results type.
+
+##  Documentation with PlotlyJS web based plots for easy viewing of different options. 

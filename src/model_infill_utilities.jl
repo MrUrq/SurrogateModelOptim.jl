@@ -154,7 +154,7 @@ end
 """
     infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_fun,infill_funcs,plan,sm_interpolant,options)
 
-Optimises the infill points based on the supplied `infill_funcs` criteria.
+Optimizes the infill points based on the supplied `infill_funcs` criteria.
 Does not allow duplicated points.
 """
 function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_fun,infill_funcs,plan,sm_interpolant,options)

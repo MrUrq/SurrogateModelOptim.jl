@@ -39,7 +39,7 @@ end
 """
     RBFHypers(width::S,kernelFunc,scaling::U,fitness::Float64)
 
-Data structure to store results from the optimisation of an RBF interpolation kernel
+Data structure to store results from the optimization of an RBF interpolation kernel
 """
 struct RBFHypers{T,U}
     kernelFunc

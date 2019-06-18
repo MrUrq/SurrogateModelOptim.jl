@@ -1,9 +1,9 @@
 """
     surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; options=Options()) where T
 
-Returns surrogate model that is a function based on an optimised Radial Basis Function
+Returns a surrogate model function based on an optimized Radial Basis Function
 interpolant. Depending on the options, the kernel, kernel width and scaling of 
-input data is optimised.
+input data is optimized.
 
 ...
 # Arguments
@@ -14,7 +14,7 @@ input data is optimised.
     function value at each sample location. each column contains one value from
     the corresponding plan location. `size(samples) = (1,num_samples)`.
 - `options=Options()`: 
-    all options available to customize the surrogate optimisation.  
+    all options available to customize the surrogate optimization.  
 ...
 """
 function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; options::Options=Options()) where T
@@ -37,7 +37,7 @@ function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; 
     # Sample order for ScatteredInterpolation
     samples_vec = vec(samples)
 
-    # Interpolation object based on the optimisation results
+    # Interpolation object based on the optimization results
     itp = Array{ScatteredInterpolation.RBFInterpolant,1}(undef,num_interpolants)
     for i = 1:num_interpolants
         # Preprocess the points based on the settings used.

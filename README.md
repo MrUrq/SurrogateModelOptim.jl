@@ -6,7 +6,7 @@
 [![Latest](https://img.shields.io/badge/docs-latest-blue.svg)](https://MrUrq.github.io/SurrogateModelOptim.jl/latest)
 [![Build Status](https://travis-ci.org/MrUrq/SurrogateModelOptim.jl.svg?branch=master)](https://travis-ci.org/MrUrq/SurrogateModelOptim.jl)
 [![Codecov](https://codecov.io/gh/MrUrq/SurrogateModelOptim.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/MrUrq/SurrogateModelOptim.jl)
-[![Project Status: Concept – Minimal or no implementation has been done yet, or the repository is only intended to be a limited example, demo, or proof-of-concept.](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 <!-- [![Build Status](https://ci.appveyor.com/api/projects/status/github/MrUrq/SurrogateModelOptim.jl?svg=true)](https://ci.appveyor.com/project/MrUrq/SurrogateModelOptim-jl) -->
 
 <!-- [![Coveralls](https://coveralls.io/repos/github/MrUrq/SurrogateModelOptim.jl/badge.svg?branch=master)](https://coveralls.io/github/MrUrq/SurrogateModelOptim.jl?branch=master) -->
@@ -15,12 +15,6 @@
 *SurrogateModelOptim* is a Julia package for the optimisation of expensive functions. 
 The surrogate model is based on an ensemble of Radial Basis Function interpolants with adaptive axis scaling.
 
-Features:
-
-* Sampling plan creation through 
-* Creation of an optimised RBF surrogate.
-* Infill of design space.
-
 ## Installation
 
 The package is registered and can be installed with `Pkg.add`.
@@ -28,6 +22,36 @@ The package is registered and can be installed with `Pkg.add`.
 ```julia
 julia> Pkg.add("SurrogateModelOptim")
 ```
+
+## Optimization
+This package is intended to be used for functions which are expensive. Expensive
+is in this case considered a function that evaluates in several minutes to days.
+The simplest form of usage is as follows.
+```julia
+julia> using SurrogateModelOptim
+julia> rosenbrock_2D(x) = (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
+julia> search_range=[(-5.0,5.0),(-5.0,5.0)]
+julia> smoptimize(rosenbrock_2D, search_range)
+```
+There are many options accessible through the options interface. The model is created from
+a Latin Hypercube sampling plan. Several Radial Basis Function surrogate models are
+fitted to the data where the ensemble of surrogates is used to predict new design locations.
+New designs are added in an alternating fashion between the predicted minimum and the 
+largest standard deviation of the surrogate predictions.
+
+Due to the high cost of creating several surrogates it is highly advisable to create
+the surrogate model in parallel. Start julia in parallel with `> julia -p x` where `x`
+is the number of available cores. The previous example can then be run as
+```julia
+julia> result = smoptimize(rosenbrock_2D, search_range;
+                    options=SurrogateModelOptim.Options(
+                    iterations=25,
+                    num_interpolants=N*x, #Where N is an integer number
+                    num_start_samples=5,
+                        ));
+```
+`num_interpolants=20` meaning the surrogate model ensemble contains 20 RBF interpolants
+ has shown good performance for a variety of functions. 
 
 ## Documentation
 
@@ -41,6 +65,5 @@ julia> Pkg.add("SurrogateModelOptim")
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-stable-url]: https://MrUrq.github.io/SurrogateModelOptim.jl/stable
 
-<!-- ### Reference
-This package is a 
-[1]: Stuart Bates, Johann Sienz, and Vassili Toropov. "Formulation of the Optimal Latin Hypercube Design of Experiments Using a Permutation Genetic Algorithm", 45th AIAA/ASME/ASCE/AHS/ASC Structures, Structural Dynamics & Materials Conference, Structures, Structural Dynamics, and Materials and Co-located Conferences, () https://doi.org/10.2514/6.2004-2011 -->
+### Citation
+TBD
