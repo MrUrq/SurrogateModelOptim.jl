@@ -29,7 +29,7 @@ Options configurable by the user with recommended default values.
     num_infill_points::Int64 = 1
     parallel_surrogate::Bool = true
     infill_funcs::Array{Symbol,1} = [:median,:std]
-    infill_iterations::Int64 = 25_000
+    infill_iterations::Int64 = 50_000
 
     @assert ((smooth == false) || (smooth == :variable) || 
     (smooth == :single) || (smooth == :single_user)) "Not supported option for smooth"
@@ -64,7 +64,3 @@ struct SurrogateResult
     infill_prediction::Array{Float64,1}
     options::Options
 end
-
-
-
-
