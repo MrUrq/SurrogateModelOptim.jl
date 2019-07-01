@@ -1,6 +1,16 @@
 ########## TODO
 
-##  -
+##  Improve documentation of options
+
+##  Update default options with better values
+
+##  Add benchmark information potentially from several solvers 
+
+##  Add multiobjective optimization example
+
+##  Add constraint example 
+
+##  Add more information on how noise should be treated in docs
 
 ########## Potential speed improvements
 
@@ -12,7 +22,7 @@
     the optimum settings from the previous iteration and using them as a seed
     improve convergence speed for the iterative solver. 
 
-##  Possibility to save entire optimisation state in an easy manner. 
+##  Possibility to save entire optimization state in an easy manner. 
 
 ##  Try optimizing widths by optimizing a subset before optimizing the entire range.
 
@@ -21,6 +31,8 @@
 ########## Wishlist
 
 ##  Fancy results printing
+
+##  More verbosity levels of printing 
 
 ##  Call and continue optimisation with the results type.
 
