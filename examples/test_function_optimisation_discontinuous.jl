@@ -12,7 +12,7 @@ search_range=[(0.0,1.0)]
 result = smoptimize(Forrester_disc, search_range;
                     options=SurrogateModelOptim.Options(
                     iterations=25,
-                    num_interpolants=20, #Preferably even number of added processes
+                    num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
                         ));
 

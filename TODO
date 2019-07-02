@@ -1,14 +1,6 @@
 ########## TODO
 
-##  Improve documentation of options
-
-##  Add benchmark information potentially from several solvers 
-
-##  Add multiobjective optimization example
-
-##  Add constraint example 
-
-##  Add more information on how noise should be treated in docs
+##  Add benchmark information, potentially from several solvers.
 
 ########## Potential speed improvements
 
@@ -30,7 +22,7 @@
 
 ##  Fancy results printing
 
-##  More verbosity levels of printing 
+##  More verbosity levels of printing with better formatting
 
 ##  Call and continue optimisation with the results type.
 

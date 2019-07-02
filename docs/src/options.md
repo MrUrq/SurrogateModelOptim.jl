@@ -3,13 +3,13 @@ The available options are listed below. The performance using the default option
 good for several test functions, with and without noise. Make sure to set
 `num_interpolants` to a value which is a multiple of the number of processes used for the
 least amount of time to create the surrogate. Based on a small benchmark test, the number
-of interpolants has marginal improvement to the optimisation above 10 interpolants. 
+of interpolants has marginal improvement to the optimization above 10 interpolants. 
 
 ```julia
 num_start_samples::Int = 5                              # Samples included in the LHC sampling plan
 trace::Bool = true                                      # Print progress
 sampling_plan_opt_gens::Int = 50_000                    # Iterations used to optimize the LHC sampling plan
-rippa::Bool = true                                      # Rippas algorithm to reduce computational effort optimising the surrogate
+rippa::Bool = true                                      # Rippas algorithm to reduce computational effort optimizing the surrogate
 kerns = [ScatteredInterpolation.Gaussian,               # RBF kernels to choose from
         ScatteredInterpolation.InverseQuadratic,        
         ScatteredInterpolation.InverseMultiquadratic]
@@ -44,18 +44,20 @@ infill_iterations::Int64 = 50_000                       # Iterations to add infi
 RBF interpolant to handle cases with noise. The best performance is had when the smallest
 amount of smoothing is applied while being large enough to hinder high frequency
 oscillations in the resulting interpolant. If the input is noisy, set `smooth` to
-`:single` and the amount of smoothing applied is automatically optimised. The amount of
-smoothing is bound between 0 and `max_smooth` when optimised automatically. It can also be
+`:single` and the amount of smoothing applied is automatically optimized. The amount of
+smoothing is bound between 0 and `max_smooth` when optimized automatically. It can also be
 set to a fixed value with the option `smooth = :single_user` where the value is supplied
-with `smooth_user` option.
+with the `smooth_user` option.
 
 ## Kernel options
 `variable_kernel_width` is by default `true` meaning that the RBF kernel and the width of
-each kernel is optimised individually for each sampled point. This does increase the
-degree of freedom which can lead to overfitting when the number of sample points is small.
-The performance when using `variable_kernel_width = true` is often smaller initially but
-can converged the problem to lower values. Recommendation is to leave the option `true` at
-all times.
+each kernel is optimized individually for each sampled point. This does increase the
+degrees of freedom which can lead to overfitting when the number of sample points is
+small. The performance when using `variable_kernel_width = true` can suffer initially when
+the number of samples is small but the overall convergence tends to be better. The
+recommendation is to leave the option `true` at all times. It can be worth experimenting
+with adding a few samples where `variable_kernel_width = false` early in the optimization
+to increase the convergence speed. 
 
 Radial Basis Function interpolation is as the name suggests, radial in space. This can
 create problems when vastly differing input to output dimensions are used such as in the

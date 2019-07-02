@@ -1,10 +1,10 @@
 # Surrogate model optimization
-A julia function can be optimised with
+A julia function can be optimized with
 
 ```@docs
 smoptimize
 ```
- 
+The goal is to minimize the function output.
 ## Example
 ```julia
 julia> using SurrogateModelOptim
@@ -24,9 +24,7 @@ julia> result = smoptimize(rosenbrock_2D, search_range;
                     num_start_samples=5,
                         ));
 ```
-The default option `num_interpolants=20` meaning the surrogate model ensemble
-contains 20 RBF interpolants has shown good performance for a variety of functions.
-More test functions and examples can be found in the source files under `examples`.
-The performance is typically good for smooth functions with or without noise. 
-Discontinuous functions are not captured well by RBF interpolation, see 
-the example folder to see this problem.
+The default option `num_interpolants=10`, meaning that the surrogate model ensemble
+contains 10 RBF interpolants, has shown good performance for a variety of functions. The
+performance is typically good for smooth functions with or without noise. Discontinuous
+functions are not captured well by RBF interpolation, see the example section.
