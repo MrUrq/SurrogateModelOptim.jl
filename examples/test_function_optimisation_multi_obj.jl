@@ -66,7 +66,7 @@ function multi_objective_smoptimize(f,search_range,options)
                 MaxSteps=50000, TraceInterval=1.0, TraceMode=:silent);
         
 
-        #Add two points randomly selected from the pareto frontier 
+        #Add two points randomly selected points from the pareto front
         pf_res_med = pareto_frontier(res_med); p_med = pf_res_med[rand(1:length(pf_res_med))]
         pf_res_std = pareto_frontier(res_std); p_std = pf_res_std[rand(1:length(pf_res_std))]
 

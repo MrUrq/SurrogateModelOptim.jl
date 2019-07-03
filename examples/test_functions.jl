@@ -6,7 +6,7 @@ using Parameters
 Data structure to store test functions.
 """
 @with_kw struct TestFunction
-    fun
+    fun::Function
     sr::Array{Tuple{Float64,Float64},1}
     min_val::Float64
     min_loc::Array{Float64,2}

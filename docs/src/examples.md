@@ -14,7 +14,11 @@ The example shows how it is possible to constrain the optimization to discrete v
 ## Multi-objective optimization
 Multi-objective optimization can be performed by creating a separate surrogate of each
 objective. The surrogate can then be used with you favourite algorithm, in this example
-[BlackBoxOptim.jl](https://github.com/robertfeldt/BlackBoxOptim.jl) is used.
+[BlackBoxOptim.jl](https://github.com/robertfeldt/BlackBoxOptim.jl) is used. In this
+example a random point is selected from the pareto front for infill. It would likely be
+better to add a space filling criteria when adding the infill points.
+
+############### ADD INFO RAND SAMPLE
 
 ## Discontinuous optimization
 This example shows how the performance of the optimization suffers in regions of

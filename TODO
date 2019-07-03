@@ -2,6 +2,8 @@
 
 ##  Add benchmark information, potentially from several solvers.
 
+##  Add information that result does not contain last sample in surrogate. Make it an option?
+
 ########## Potential speed improvements
 
 ##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
@@ -18,10 +20,14 @@
 
 ##  Implement RBFs with sparse support to increase speed of solving linear eq. system.
 
+##  Optimize hyperparameters with another solver, e.g. LBFGS + random start, requires
+    re-thinking variable kernels.   
+
 ########## Wishlist
 
 ##  Fancy results printing
 
-##  More verbosity levels of printing with better formatting
+##  More verbosity levels of printing with better formatting, formatting should be
+    functional for individual function calls as well.
 
 ##  Call and continue optimisation with the results type.
