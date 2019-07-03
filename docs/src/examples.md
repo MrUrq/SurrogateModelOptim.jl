@@ -18,8 +18,6 @@ objective. The surrogate can then be used with you favourite algorithm, in this 
 example a random point is selected from the pareto front for infill. It would likely be
 better to add a space filling criteria when adding the infill points.
 
-############### ADD INFO RAND SAMPLE
-
 ## Discontinuous optimization
 This example shows how the performance of the optimization suffers in regions of
 discontinuity. If possible, reformulate the problem so that it becomes smooth. If that is

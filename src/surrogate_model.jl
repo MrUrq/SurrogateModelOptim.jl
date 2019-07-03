@@ -2,7 +2,7 @@
     surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; options=Options()) where T
 
 Returns a surrogate model function based on an optimized Radial Basis Function
-interpolant. Depending on the options, the kernel, kernel width and scaling of 
+interpolant. Depending on the supplied options; the kernel, kernel width and scaling of 
 input data is optimized.
 
 ...
@@ -19,20 +19,26 @@ input data is optimized.
 """
 function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; options::Options=Options()) where T
 
-    @unpack num_interpolants, trace, parallel_surrogate = options
+    @unpack num_interpolants, trace, parallel_surrogate, smooth = options
 
-    trace && println("Creating optimized surrogate model ...")
+    (trace == :verbose) && println("Creating optimized surrogate model")
 
     (length(samples) != size(plan,2)) && error("plan and samples do not have the correct sizes")
     
     #Optimize RBF hypers for the ensamble of interpolants
     if parallel_surrogate
-        optres = pmap(  (x)->rbf_hypers_opt(samples, plan, options), 
+        mres = pmap(  (x)->rbf_hypers_opt(samples, plan, options), 
                         1:num_interpolants)
     else
-        optres = map(  (x)->rbf_hypers_opt(samples, plan, options), 
+        mres = map(  (x)->rbf_hypers_opt(samples, plan, options), 
                         1:num_interpolants)
     end
+
+    optres = first.(mres)
+    fitness = last.(mres)
+
+    #Print hyperparameter results
+    (trace == :verbose) && print_sm_opt(fitness,optres,smooth)
 
     # Sample order for ScatteredInterpolation
     samples_vec = vec(samples)
@@ -57,4 +63,21 @@ function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; 
                                         Ref(old_min),Ref(old_max))
 
     return sm_func, optres
+end
+
+function print_sm_opt(fitness,optres,smooth)
+    print(@sprintf("    mean surrogate fitness (smaller is better)= %.5g,  (min = %.5g, max = %.5g)\n",mean(fitness),minimum(fitness),maximum(fitness)))
+
+    sc_res = [opt.scaling./opt.scaling[1] for opt in optres]
+    println("    mean dim. scale (norm. to first dim.) = ", mean(sc_res),
+                                        " (min = ",minimum(sc_res),
+                                        ", max = ",maximum(sc_res),")")
+    sm_res = [opt.smooth for opt in optres]
+    if smooth == :variable
+        println("    mean smoothing = ", mean.(sm_res),
+                                        " (min = ",minimum.(sm_res),
+                                        ", max = ",maximum.(sm_res),") \n")
+    else
+        println(@sprintf("    mean smoothing = %.5g,  (min = %.5g, max = %.5g)\n",mean(sm_res),minimum(sm_res),maximum(sm_res)))
+    end
 end

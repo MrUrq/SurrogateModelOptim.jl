@@ -7,12 +7,10 @@ of interpolants has marginal improvement to the optimization above 10 interpolan
 
 ```julia
 num_start_samples::Int = 5                              # Samples included in the LHC sampling plan
-trace::Bool = true                                      # Print progress
+trace::Symbol = :compact                                # Print the progress. Options include :silent, :compact and :verbose
 sampling_plan_opt_gens::Int = 50_000                    # Iterations used to optimize the LHC sampling plan
 rippa::Bool = true                                      # Rippas algorithm to reduce computational effort optimizing the surrogate
-kerns = [ScatteredInterpolation.Gaussian,               # RBF kernels to choose from
-        ScatteredInterpolation.InverseQuadratic,        
-        ScatteredInterpolation.InverseMultiquadratic]
+kerns = [ScatteredInterpolation.Gaussian]               # RBF kernels to choose from
 rbf_opt_gens::Int = 50_000                              # Generations that the RBF hyperparameters are optimized
 rbf_opt_pop::Int = 50                                   # Population size of RBF hyperparameter optimization
 rbf_opt_method::Symbol = :de_rand_1_bin_radiuslimited   # BlackBoxOptim optimization method for RBF hyperparameters
@@ -36,6 +34,7 @@ num_infill_points::Int64 = 1                            # Number of infill point
 parallel_surrogate::Bool = true                         # Create each surrogate in the ensemble in parallel
 infill_funcs::Array{Symbol,1} = [:median,:std]          # Infill criteria, cycled through 
 infill_iterations::Int64 = 50_000                       # Iterations to add infill points to the design space
+create_final_surrogate::Bool = false                    # Option to re-create the surrogate using all evaluated samples 
 ```
 
 

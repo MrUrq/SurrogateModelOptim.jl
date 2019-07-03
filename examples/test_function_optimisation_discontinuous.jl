@@ -1,7 +1,6 @@
 using SurrogateModelOptim
 using PlotlyJS
 using Statistics
-using Distributed
 
 # Discontinuous Forrester function
 Forrester(x) = (6*x[1] - 2)^2 * sin(12*x[1] - 4)
@@ -11,7 +10,7 @@ search_range=[(0.0,1.0)]
 # Optimize the test function
 result = smoptimize(Forrester_disc, search_range;
                     options=SurrogateModelOptim.Options(
-                    iterations=25,
+                    iterations=20,
                     num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
                         ));

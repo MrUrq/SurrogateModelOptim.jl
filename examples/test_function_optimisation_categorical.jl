@@ -5,7 +5,7 @@ using SurrogateModelOptim
 using Parameters
 
 options=SurrogateModelOptim.Options(
-    iterations=25,
+    iterations=15,
     num_interpolants=10, #Preferably even number of added processes
     num_start_samples=5,
         )
@@ -46,7 +46,7 @@ function categorical_smoptimize(f,search_range,dims,vals,options)
     end
     
     #Evaluate sampling plan
-    lhc_samples = SurrogateModelOptim.f_opt_eval(f,lhc_plan,trace)
+    lhc_samples = SurrogateModelOptim.f_opt_eval(f,lhc_plan;trace=trace)
 
     #Initialize variables to be returned
     sm_interpolant = nothing
@@ -80,7 +80,7 @@ function categorical_smoptimize(f,search_range,dims,vals,options)
             model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat!(x,vals);options=options)
             
         #Evaluate the new infill points
-        infill_sample_new = SurrogateModelOptim.f_opt_eval(f,infill_plan_new,samples_all,trace)
+        infill_sample_new = SurrogateModelOptim.f_opt_eval(f,infill_plan_new,samples_all;trace=trace)
 
         #Add infill points
         infill_plan = [infill_plan infill_plan_new]

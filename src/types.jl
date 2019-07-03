@@ -5,11 +5,10 @@ Options configurable by the user with recommended default values.
 """
 @with_kw struct Options
     num_start_samples::Int = 5
-    trace::Bool = true
+    trace::Symbol = :compact
     sampling_plan_opt_gens::Int = 50_000
     rippa::Bool = true
-    kerns = [ScatteredInterpolation.Gaussian, ScatteredInterpolation.InverseQuadratic,
-             ScatteredInterpolation.InverseMultiquadratic]
+    kerns = [ScatteredInterpolation.Gaussian]
     rbf_opt_gens::Int = 50_000
     rbf_opt_pop::Int = 50
     rbf_opt_method::Symbol = :de_rand_1_bin_radiuslimited
@@ -30,9 +29,13 @@ Options configurable by the user with recommended default values.
     parallel_surrogate::Bool = true
     infill_funcs::Array{Symbol,1} = [:median,:std]
     infill_iterations::Int64 = 50_000
+    create_final_surrogate::Bool = false
 
     @assert ((smooth == false) || (smooth == :variable) || 
-    (smooth == :single) || (smooth == :single_user)) "Not supported option for smooth"
+    (smooth == :single) || (smooth == :single_user)) "Not supported smoothing option"
+
+    @assert ((trace == :silent) || (trace == :compact) || 
+    (trace == :verbose)) "Not supported trace option"
 end
 
 

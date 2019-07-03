@@ -1,7 +1,6 @@
 using SurrogateModelOptim
 using PlotlyJS
 using Statistics
-using Distributed
 
 # Optimize the test function Rosenbrock
 function rosenbrock_2D(x)
@@ -11,7 +10,7 @@ search_range=[(-5.0,5.0),(-5.0,5.0)]
 
 result = smoptimize(rosenbrock_2D, search_range;
                     options=SurrogateModelOptim.Options(
-                    iterations=25,
+                    iterations=15,
                     num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
                         ));

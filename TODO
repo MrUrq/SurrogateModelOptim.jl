@@ -2,7 +2,14 @@
 
 ##  Add benchmark information, potentially from several solvers.
 
-##  Add information that result does not contain last sample in surrogate. Make it an option?
+##  Re-run tests, documentation examples and examples folder
+
+##  Add helper function to ease use of package such as minimizer and best_fitness
+
+##  Fancy results printing
+
+##  More verbosity levels of printing with better formatting, formatting should be
+    functional for individual function calls as well.
 
 ########## Potential speed improvements
 
@@ -24,10 +31,5 @@
     re-thinking variable kernels.   
 
 ########## Wishlist
-
-##  Fancy results printing
-
-##  More verbosity levels of printing with better formatting, formatting should be
-    functional for individual function calls as well.
 
 ##  Call and continue optimisation with the results type.
