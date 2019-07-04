@@ -17,42 +17,30 @@ function rosenbrock_2D(x)
     return (1.0 - x[1])^2 + 100.0 * (x[2] - x[1]^2)^2
 end
 
+rosenbrock_2D_pen = function (x)            
+    if abs(x[1]) < 1
+        return rosenbrock_2D(x).+50_000 #Add large value as penalty
+    else
+        return rosenbrock_2D(x)
+    end
+end
+
 search_range=[(-5.0,5.0),(-5.0,5.0)]
 
-possible_locs = 20 #Defined the possible design locations from -5,5
-dims = [LatinHypercubeSampling.Categorical(possible_locs) for i in 1:length(search_range)]
-vals = [Tuple((i for i in range(-5.0,stop=5.0,length=possible_locs))) for i in 1:length(search_range)] 
-
-function categorical_smoptimize(f,search_range,dims,vals,options)
-
-    #Print the known minimum (brute force approach)
-    possible_designs = collect(Base.Iterators.product(vals...))    
-    println("Number of possible designs = ", length(possible_designs))
-    min_loc = argmin(f.(possible_designs))
-    max_loc = argmax(f.(possible_designs))
-    println("Minimum and maximum value in categorical design space: (only for example purposes)")
-    println("  Min ",f(possible_designs[min_loc]), ", ", possible_designs[min_loc])
-    println("  Max ",f(possible_designs[max_loc]), ", ", possible_designs[max_loc])
+function constrained_smoptimize(f,search_range,options)
 
     #Load some option values
     @unpack num_start_samples, sampling_plan_opt_gens,
             iterations, trace = options
     
-    #Create categorical sampling plan with the values in vals
-    initialSample = randomLHC(num_start_samples,dims)
-    Xind = permutedims(LHCoptim!(initialSample,sampling_plan_opt_gens;dims=dims)[1])
-    lhc_plan = Array{Float64,2}(undef,size(Xind)) 
-    for i = 1:size(Xind,1)
-        for j = 1:size(Xind,2)
-            lhc_plan[i,j] = vals[i][Xind[i,j]]
-        end
-    end
+    #Create sampling plan
+    lhc_plan = SurrogateModelOptim.scaled_LHC_sampling_plan(search_range,num_start_samples,10000)
     
     #Evaluate sampling plan
     lhc_samples = SurrogateModelOptim.f_opt_eval(f,lhc_plan;trace=trace)
 
     #Initialize variables to be returned
-    sm_interpolant = nothing
+    sm_interpolant_pen = nothing
     infill_type = Array{Symbol,1}(undef,0)
     infill_prediction = Array{Float64,1}(undef,0)
     optres = nothing
@@ -68,19 +56,18 @@ function categorical_smoptimize(f,search_range,dims,vals,options)
         plan_all = [lhc_plan infill_plan]
         sm_interpolant, optres = SurrogateModelOptim.surrogate_model(plan_all, samples_all; options=options)
 
-        #Choose the closest categorical value when evaluating the function. Note
-        # this alters the input of x to match closest value.
-        sm_interpolant_cat! = function (x,vals)            
-            for (i,x_val) in enumerate(x)
-                c_ind = SurrogateModelOptim.closest_index(x_val, vals[i])
-                x[i] = vals[i][c_ind]
+        #Add the penalty if abs(x) < 1
+        sm_interpolant_pen = function (x)            
+            if abs(x[1]) < 1
+                return sm_interpolant(x).+50_000 #Add large value as penalty
+            else
+                return sm_interpolant(x)
             end
-            return sm_interpolant(x)
         end
         
         #Points to add to the sampling plan to improve the interpolant
         infill_plan_new, infill_type_new, infill_prediction_new, options  = 
-            model_infill(search_range,plan_all,samples_all,x->sm_interpolant_cat!(x,vals);options=options)
+            model_infill(search_range,plan_all,samples_all,sm_interpolant_pen;options=options)
             
         #Evaluate the new infill points
         infill_sample_new = SurrogateModelOptim.f_opt_eval(f,infill_plan_new,samples_all;trace=trace)
@@ -92,11 +79,12 @@ function categorical_smoptimize(f,search_range,dims,vals,options)
         infill_prediction = [infill_prediction; infill_prediction_new]
     end   
     
-    return SurrogateModelOptim.SurrogateResult( lhc_samples, lhc_plan, sm_interpolant,
+    return SurrogateModelOptim.SurrogateResult( lhc_samples, lhc_plan, sm_interpolant_pen,
                             optres, infill_sample, infill_type,
                             infill_plan, infill_prediction,options)
 end
-result = categorical_smoptimize(rosenbrock_2D,search_range,dims,vals,options)
+result = constrained_smoptimize(rosenbrock_2D,search_range,options)
+show(result)
 
 function plot_fun_2D(fun,sr,title)    
     N = 51    
@@ -112,5 +100,5 @@ function plot_fun_2D(fun,sr,title)
 end
 
 # Plot the results 
-display(plot_fun_2D(rosenbrock_2D,search_range,"Original function"))
-display(plot_fun_2D(x->median(result.sm_interpolant(x)),search_range,"Estimated function"))
+display(plot_fun_2D(rosenbrock_2D_pen,search_range,"Original function with added penalty"))
+display(plot_fun_2D(x->median(result.sm_interpolant(x)),search_range,"Estimated function with added penalty"))

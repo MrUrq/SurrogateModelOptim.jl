@@ -1,6 +1,6 @@
 ########## TODO
 
-##  -
+##  Add benchmark information, potentially from several solvers.
 
 ########## Potential speed improvements
 
@@ -12,16 +12,21 @@
     the optimum settings from the previous iteration and using them as a seed
     improve convergence speed for the iterative solver. 
 
-##  Possibility to save entire optimisation state in an easy manner. 
+##  Possibility to save entire optimization state in an easy manner. 
 
 ##  Try optimizing widths by optimizing a subset before optimizing the entire range.
 
 ##  Implement RBFs with sparse support to increase speed of solving linear eq. system.
 
-########## Wishlist
+##  Optimize hyperparameters with another solver, e.g. LBFGS + random start, requires
+    re-thinking variable kernels.   
 
-##  Fancy results printing
+########## Wishlist
 
 ##  Call and continue optimisation with the results type.
 
-##  Documentation with PlotlyJS web based plots for easy viewing of different options. 
+##  Documentation of in-place options updating
+
+##  Add option to use Generalized RBF Interpolant. Needs updates to types
+
+##  Add option to use a cheap interpolant to speed up the iterations, e.g. IDW

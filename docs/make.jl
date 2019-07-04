@@ -9,7 +9,9 @@ makedocs(;
                 "Manual" => [
                         "smoptimize.md",
                         "surrogate_model.md",
-                        "options.md"
+                        "model_infill.md",
+                        "options.md",
+                        "examples.md"
                 ],
         ],
     repo="https://github.com/MrUrq/SurrogateModelOptim.jl/blob/{commit}{path}#L{line}",

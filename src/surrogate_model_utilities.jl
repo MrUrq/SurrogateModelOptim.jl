@@ -448,5 +448,5 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
                                                     variable_dim_scaling,smooth,smooth_user)
 
     # Return the optimized hyperparameters in the correct type
-    return RBFHypers(kern, scaling, smooth)
+    return RBFHypers(kern, scaling, smooth), best_fitness(res)
 end

@@ -265,31 +265,31 @@ function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,i
     return infill_plan,infill_type,infill_prediction
 end
 
-print_infill_head() = println("Finding new infill samples ...")
+print_infill_head() = println("Finding new infill samples")
 
 function print_infill_tail(infill_type,num_infill_points,infill_plan,infill_prediction)
-    println("Infill samples:")
-    println("---------------------------------------------------------------")
+    print("    ")
     for i = (length(infill_type)-num_infill_points+1):length(infill_type)
         print(@sprintf("%-15s",infill_type[i]))
     end
     print("\n")
-    println("---------------------------------------------------------------")
+    println("    ---------------------------------------------------------------")
     for j = 1:size(infill_plan,1)
+        print("    ")
         for i = 1:size(infill_plan,2)
             print(@sprintf("%-15.7g",infill_plan[j,i]))
         end
         print("\n")
     end
-    println("---------------------------------------------------------------")
+    println("    ---------------------------------------------------------------")
     _, min_loc = findmin(infill_prediction)
+    print("    ")
     for i = 1:size(infill_plan,2)
         if i == min_loc
-            printstyled(@sprintf("%-15.7g",infill_prediction[i]); color=:light_green, bold=true)
+            printstyled(@sprintf("%-15.7g",infill_prediction[i]); bold=true)
         else
             printstyled(@sprintf("%-15.7g",infill_prediction[i]))
         end
     end
-    print("\t prediction\n")
-    println("---------------------------------------------------------------")
+    println("\t prediction\n")
 end

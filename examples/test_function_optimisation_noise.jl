@@ -1,7 +1,6 @@
 using SurrogateModelOptim
 using PlotlyJS
 using Statistics
-using Distributed
 using Random
 
 # Optimize the test function Rosenbrock
@@ -19,10 +18,15 @@ end
 
 result = smoptimize(noisy_rosenbrock_2D, search_range;
                     options=SurrogateModelOptim.Options(
-                    iterations=25,
-                    num_interpolants=20, #Preferably even number of added processes
+                    smooth=:single,
+                    iterations=10,
+                    num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
-                        ));
+                    infill_funcs=[:std,:median],
+                    create_final_surrogate=true, #Use the results from last iteration to
+                                                 #re-create the surrogate before using it for plotting
+                        )) 
+show(result)
 
 function plot_fun_2D(fun,sr,title)    
     N = 51    

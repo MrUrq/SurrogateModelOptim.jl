@@ -4,7 +4,7 @@
     #KD-tree for the plan as well as the samples from the plan
     search_range = [(-10.0,10.0), (0.0,2.0), (25.0,40.0)]
     n_samples = 6
-    plan = SurrogateModelOptim.scaled_LHC_sampling_plan(search_range,n_samples,1000;trace=false)
+    plan = SurrogateModelOptim.scaled_LHC_sampling_plan(search_range,n_samples,1000;trace=:silent)
     samples = mapslices(sum,plan,dims=1)
 
     combined_points_samples = [plan;samples]
@@ -23,11 +23,11 @@
 
     #Make sure correct input format is used
     @test_throws ErrorException model_infill(search_range,permutedims(plan),samples,sum;
-            options = SurrogateModelOptim.Options(trace=false))
+            options = SurrogateModelOptim.Options(trace=:silent))
 
     #Make sure that input format is used
     @test_throws ErrorException model_infill(search_range,permutedims(plan),samples,
             sum; options = SurrogateModelOptim.Options( infill_funcs = [:std,:median],
                                                         num_interpolants = 1,
-                                                        trace = false))
+                                                        trace=:silent))
 end
