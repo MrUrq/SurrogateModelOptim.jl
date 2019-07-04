@@ -28,5 +28,5 @@ considered to be a discontinuity.
 ## Constrained optimization
 Constrained optimization can be performed by adding an additional penalty after the
 surrogate model has been created. Note that it is important to add it after the creation
-to keep the function as smooth as possible. If it is added before the creating the
+to keep the function as smooth as possible. If it is added before the creation, the
 surrogate accuracy will suffer in the transition area where the penalty was added.

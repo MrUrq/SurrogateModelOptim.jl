@@ -2,15 +2,6 @@
 
 ##  Add benchmark information, potentially from several solvers.
 
-##  Re-run tests, documentation examples and examples folder
-
-##  Add helper function to ease use of package such as minimizer and best_fitness
-
-##  Fancy results printing
-
-##  More verbosity levels of printing with better formatting, formatting should be
-    functional for individual function calls as well.
-
 ########## Potential speed improvements
 
 ##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
@@ -33,3 +24,9 @@
 ########## Wishlist
 
 ##  Call and continue optimisation with the results type.
+
+##  Documentation of in-place options updating
+
+##  Add option to use Generalized RBF Interpolant. Needs updates to types
+
+##  Add option to use a cheap interpolant to speed up the iterations, e.g. IDW

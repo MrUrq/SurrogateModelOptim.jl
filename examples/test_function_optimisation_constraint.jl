@@ -5,9 +5,12 @@ using SurrogateModelOptim
 using Parameters
 
 options=SurrogateModelOptim.Options(
-    iterations=15,
+    iterations=10,
     num_interpolants=10, #Preferably even number of added processes
     num_start_samples=5,
+    infill_funcs=[:std,:median],
+    create_final_surrogate=true, #Use the results from last iteration to
+                                 #re-create the surrogate before using it for plotting
         )
     
 function rosenbrock_2D(x)
@@ -46,7 +49,7 @@ function constrained_smoptimize(f,search_range,options)
 
     #Run the entire optimization iterations number of times
     for i = 1:iterations
-        trace && SurrogateModelOptim.print_iteration(i,iterations)
+        SurrogateModelOptim.print_iteration(trace,i,iterations)
         
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]
@@ -81,6 +84,7 @@ function constrained_smoptimize(f,search_range,options)
                             infill_plan, infill_prediction,options)
 end
 result = constrained_smoptimize(rosenbrock_2D,search_range,options)
+show(result)
 
 function plot_fun_2D(fun,sr,title)    
     N = 51    

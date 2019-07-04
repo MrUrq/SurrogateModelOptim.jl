@@ -30,3 +30,14 @@ performance is typically good for smooth functions with or without noise. Discon
 functions are not captured well by RBF interpolation, see the example section. The
 surrogate model returned in the results does not contain the last evaluated infill points
 by default. This can be turned on with the option `create_final_surrogate=true`. 
+
+A few helper function are available to deal with the results type.
+```@docs
+best_fitness
+```
+```@docs
+best_candidate
+```
+```@docs
+f_calls
+```

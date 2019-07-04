@@ -10,8 +10,8 @@
                         iterations=3,
                         num_interpolants=1,
                         num_start_samples=2,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -19,6 +19,7 @@
                         variable_dim_scaling = true,
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:dist]
                             ));
     @test typeof(result) == SurrogateModelOptim.SurrogateResult
@@ -29,8 +30,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=2,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -38,6 +39,7 @@
                         variable_dim_scaling = true,
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test length(result.sm_interpolant_settings) == 2
@@ -48,8 +50,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -57,6 +59,7 @@
                         variable_dim_scaling = true,
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test length(result.lhc_samples) == 5
@@ -67,8 +70,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=2,
                         trace=:silent,
                         rippa = true,
@@ -76,6 +79,7 @@
                         variable_dim_scaling = true,
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test length(result.infill_samples) == 3*2 #iterations*num_interpolants
@@ -86,8 +90,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=2,
                         trace=:silent,
                         rippa = false,
@@ -95,6 +99,7 @@
                         variable_dim_scaling = true,
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test typeof(result) == SurrogateModelOptim.SurrogateResult
@@ -107,8 +112,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=2,
                         trace=:silent,
                         rippa = true,
@@ -117,6 +122,7 @@
                         kerns = [SurrogateModelOptim.ScatteredInterpolation.Gaussian],
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test typeof(result.sm_interpolant_settings[1].kernelFunc) == SurrogateModelOptim.ScatteredInterpolation.Gaussian{Float64}
@@ -130,8 +136,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -139,6 +145,7 @@
                         variable_dim_scaling = false,
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test result.sm_interpolant_settings[1].scaling == false
@@ -149,8 +156,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -158,6 +165,7 @@
                         variable_dim_scaling = false,
                         smooth=:false,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test result.sm_interpolant_settings[1].smooth == false
@@ -168,8 +176,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -177,6 +185,7 @@
                         variable_dim_scaling = false,
                         smooth=:variable,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test typeof(result.sm_interpolant_settings[1].smooth) == Array{Float64,1}
@@ -187,8 +196,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -196,6 +205,7 @@
                         variable_dim_scaling = false,
                         smooth=:single,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test typeof(result.sm_interpolant_settings[1].smooth) == Float64
@@ -206,8 +216,8 @@
                         iterations=3,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
@@ -216,6 +226,7 @@
                         smooth=:single_user,
                         smooth_user = 1337.0,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test result.sm_interpolant_settings[1].smooth == 1337.0
@@ -226,14 +237,15 @@
                         iterations=6,
                         num_interpolants=2,
                         num_start_samples=5,
-                        rbf_opt_gens=50,
-                        infill_iterations=50,
+                        rbf_opt_gens=5,
+                        infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
                         rippa = true,
                         variable_kernel_width = true,
                         variable_dim_scaling = false,
                         parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test result.infill_type == [:min,:mean,:median,:std,:dist,:min]

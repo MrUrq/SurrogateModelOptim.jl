@@ -5,9 +5,12 @@ using SurrogateModelOptim
 using Parameters
 
 options=SurrogateModelOptim.Options(
-    iterations=15,
+    iterations=10,
     num_interpolants=10, #Preferably even number of added processes
     num_start_samples=5,
+    infill_funcs=[:std,:median],
+    create_final_surrogate=true, #Use the results from last iteration to
+                                 #re-create the surrogate before using it for plotting
         )
     
 function rosenbrock_2D(x)
@@ -27,9 +30,9 @@ function categorical_smoptimize(f,search_range,dims,vals,options)
     println("Number of possible designs = ", length(possible_designs))
     min_loc = argmin(f.(possible_designs))
     max_loc = argmax(f.(possible_designs))
-    println("Minimum and maximum value in categorical design space:")
-    println("Min ",f(possible_designs[min_loc]), ", ", possible_designs[min_loc])
-    println("Max ",f(possible_designs[max_loc]), ", ", possible_designs[max_loc])
+    println("Minimum and maximum value in categorical design space: (only for example purposes)")
+    println("  Min ",f(possible_designs[min_loc]), ", ", possible_designs[min_loc])
+    println("  Max ",f(possible_designs[max_loc]), ", ", possible_designs[max_loc])
 
     #Load some option values
     @unpack num_start_samples, sampling_plan_opt_gens,
@@ -58,7 +61,7 @@ function categorical_smoptimize(f,search_range,dims,vals,options)
 
     #Run the entire optimization iterations number of times
     for i = 1:iterations
-        trace && SurrogateModelOptim.print_iteration(i,iterations)
+        SurrogateModelOptim.print_iteration(trace,i,iterations)
         
         #Create the optimized Radial Basis Function interpolant      
         samples_all = [lhc_samples infill_sample]

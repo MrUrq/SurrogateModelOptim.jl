@@ -10,10 +10,13 @@ search_range=[(0.0,1.0)]
 # Optimize the test function
 result = smoptimize(Forrester_disc, search_range;
                     options=SurrogateModelOptim.Options(
-                    iterations=20,
+                    iterations=10,
                     num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
-                        ));
+                    infill_funcs=[:std,:median],
+                    create_final_surrogate=true, #Use the results from last iteration to
+                                                 #re-create the surrogate before using it for plotting
+                        ))
 
 function plot_fun_1D(fun_original,fun_estimate,search_range)    
     N = 101    

@@ -8,7 +8,10 @@ using Printf
 options=SurrogateModelOptim.Options(
     iterations=10,
     num_interpolants=10, #Preferably even number of added processes
-    num_start_samples=3,
+    num_start_samples=5,
+    infill_funcs=[:std,:median],
+    create_final_surrogate=true, #Use the results from last iteration to
+                                 #re-create the surrogate before using it for plotting
         )
 
 fitness_schaffer1(x) = (sum(abs2, x), sum(abs2, x .- 2.0))
@@ -42,7 +45,7 @@ function multi_objective_smoptimize(f,search_range,options)
 
     #Run the entire optimization iterations number of times
     for i = 1:iterations
-        trace && SurrogateModelOptim.print_iteration(i,iterations)
+        SurrogateModelOptim.print_iteration(trace,i,iterations)
         
         plan_all = [lhc_plan infill_plan]
         samples_all = [[lhc_samples[j] infill_sample[j]] for j in 1:n_funcs]
@@ -73,11 +76,11 @@ function multi_objective_smoptimize(f,search_range,options)
         infill_plan_new = [permutedims(p_med.inner.params') permutedims(p_std.inner.params')]
             
         #Evaluate the new infill points
-        infill_sample_new = [SurrogateModelOptim.f_opt_eval(x->f(x)[j],infill_plan_new,samples_all[j];trace=false) for j in 1:n_funcs]
+        infill_sample_new = [SurrogateModelOptim.f_opt_eval(x->f(x)[j],infill_plan_new,samples_all[j];trace=:silent) for j in 1:n_funcs]
 
-        println("Evaluating functions-------------------------------------------")
+        println("\nEvaluating functions------------")
         [str = printstyled(@sprintf("Objective value: %-15.7g \n",minimum(infill_sample_new[i]))) for i in 1:n_funcs]
-        println("---------------------------------------------------------------")
+        println("--------------------------------")
 
         #Add infill points
         infill_plan = [infill_plan infill_plan_new]
