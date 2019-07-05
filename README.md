@@ -51,7 +51,7 @@ julia> result = smoptimize(rosenbrock_2D, search_range;
                     num_start_samples=5,
                         ));
 ```
-`num_interpolants=20` meaning the surrogate model ensemble contains 20 RBF interpolants
+`num_interpolants=10` meaning that the surrogate model ensemble contains 10 RBF interpolants
  has shown good performance for a variety of functions. 
 
 ## Documentation
