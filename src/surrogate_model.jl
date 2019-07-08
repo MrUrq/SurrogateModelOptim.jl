@@ -47,7 +47,7 @@ function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; 
     itp = Array{ScatteredInterpolation.RBFInterpolant,1}(undef,num_interpolants)
     for i = 1:num_interpolants
         # Preprocess the points based on the settings used.
-        preprocessed_point = preprocess_point(plan,optres[i],base_scale=plan)
+        preprocessed_point = preprocess_point(plan,optres[i].scaling,base_scale=plan)
         
         itp[i] = interpolate(optres[i].kernelFunc, preprocessed_point,
                             samples_vec, smooth=optres[i].smooth)
