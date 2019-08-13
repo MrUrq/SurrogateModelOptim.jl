@@ -22,7 +22,6 @@ result = smoptimize(noisy_rosenbrock_2D, search_range;
                     iterations=10,
                     num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
-                    infill_funcs=[:std,:median],
                     create_final_surrogate=true, #Use the results from last iteration to
                                                  #re-create the surrogate before using it for plotting
                         )) 

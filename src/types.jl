@@ -9,17 +9,18 @@ Options configurable by the user with recommended default values.
     sampling_plan_opt_gens::Int = 1_000
     rippa::Bool = true
     kerns = [ScatteredInterpolation.Gaussian]
-    rbf_opt_gens::Int = 10_000
+    rbf_opt_gens::Int = 1_000
     rbf_opt_pop::Int = 50
-    rbf_opt_method::Symbol = :de_rand_1_bin_radiuslimited
+    rbf_opt_method::Symbol = :adaptive_de_rand_1_bin_radiuslimited
     rbf_dist_metric = Distances.Euclidean()
     variable_kernel_width::Bool = true
     variable_dim_scaling::Bool = true
-    cond_max::Float64 = 1e8
+    cond_max::Float64 = 5e12
+    cond_check::Bool = false
     max_rbf_width::Float64 = 1.0
-    min_rbf_width::Float64 = 1e-10
+    min_rbf_width::Float64 = 0.0
     max_scale::Float64 = 1.0
-    min_scale::Float64 = 1e-10
+    min_scale::Float64 = 0.0
     num_interpolants::Int = 10
     smooth = false
     max_smooth::Float64 = 0.005
@@ -27,7 +28,7 @@ Options configurable by the user with recommended default values.
     iterations::Int64 = 5
     num_infill_points::Int64 = 1
     parallel_surrogate::Bool = true
-    infill_funcs::Array{Symbol,1} = [:median,:std]
+    infill_funcs::Array{Symbol,1} = [:std,:median]
     infill_iterations::Int64 = 10_000
     create_final_surrogate::Bool = false
 
