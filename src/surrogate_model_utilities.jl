@@ -204,13 +204,12 @@ Scales the input points in order to evaluate the adaptively scaled RBF correctly
 """
 function preprocess_point(points,scaling;base_scale::Array{Float64,2})
 
-    old_min = minimum(base_scale,dims=2)
-    old_max = maximum(base_scale,dims=2)
+    min_max = extrema(base_scale, dims=2)
 
     preprocessed_point = similar(points)
     for i = 1:size(preprocessed_point,1)
         preprocessed_point[i,:] = scale(points[i,:],-1.0*scaling[i],1.0*scaling[i],
-        old_min = old_min[i], old_max = old_max[i])
+        old_min = min_max[i][1], old_max = min_max[i][2])
     end
     return preprocessed_point
 end
@@ -318,8 +317,8 @@ end
 Supply length of subsets contained in a vector and receive a tuple containing
 all the ranges needed to extract each subset in the vector.
 """
-function extract_vector_range(vargs::Int64...)    
-    output = Array{Any,1}()
+function extract_vector_range(vargs::Int...)
+    output = Array{Union{UnitRange{Int}, Int, Bool},1}()
 
     count = 0
     for (i,varg) in enumerate(vargs)
