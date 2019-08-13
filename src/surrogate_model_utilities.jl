@@ -41,7 +41,7 @@ for Radial Basis Functions at a cost of 𝛰(3)
 matrix `A` used in the RBF calculation.
 """
 function RMSErrorLOO(interp, samples, plan, smooth;
-    cond_max::Float64=1e6, rippa::Bool=false, rbf_dist_metric = Euclidean())
+    cond_max::Float64=1e6, cond_check::Bool=false, rippa::Bool=false, rbf_dist_metric = Euclidean())
 
     #initiate arrays
     N = length(samples)
@@ -60,7 +60,7 @@ end
 
 
 function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
- samples, plan::T, smooth; cond_max::Float64=1e6,
+ samples, plan::T, smooth; cond_max::Float64=1e6, cond_check::Bool=false,
   rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray where U <: AbstractArray
 
     N = length(samples)
@@ -76,7 +76,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
             samples, returnRBFmatrix=true, metric = rbf_dist_metric, smooth=smooth)
 
         #check the conditioning of matrix A for RBFs
-        if (cond(A) > cond_max)
+        if cond_check && (cond(A) > cond_max)
             E .= Inf
         else
             #RBF error estimation based on Rippas algorithm
@@ -97,7 +97,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
                 samples[LOOinds[:,i]], returnRBFmatrix=true, metric = rbf_dist_metric, smooth=loo_smooth)
 
             #check the conditioning of matrix A for RBFs
-            if (cond(A) > cond_max)
+            if cond_check && (cond(A) > cond_max)
                 E .= Inf
             else
                 #evaluate the interpolation object in the LOO position
@@ -113,7 +113,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
 end
 
 function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
- cond_max::Float64=1e6, rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray
+ cond_max::Float64=1e6, cond_check::Bool=false, rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray
 
     N = length(samples)
     RMSE = Inf
@@ -127,7 +127,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
          samples, returnRBFmatrix=true, metric = rbf_dist_metric, smooth=smooth)
 
         #check the conditioning of matrix A for RBFs
-        if (cond(A) > cond_max)
+        if cond_check && (cond(A) > cond_max)
             E .= Inf
         else
             #RBF error estimation based on Rippas algorithm
@@ -147,7 +147,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
                 samples[LOOinds[:,i]], returnRBFmatrix=true, metric = rbf_dist_metric, smooth=loo_smooth)
             
             #check the conditioning of matrix A for RBFs
-            if (cond(A) > cond_max)
+            if cond_check && (cond(A) > cond_max)
                 E .= Inf
             else
                #evaluate the interpolation object in the LOO position
@@ -192,7 +192,7 @@ Scale a 2D matrix to match a new range along the specified `direction`.
 """
 function scale(old_x::Array{T,2},direction::Int,new_min,new_max;old_min=minimum(old_x,dims=direction)::Array{T,2},old_max=maximum(old_x,dims=direction)::Array{T,2}) where T <: Real 
 
-    newX = mapslices(x -> scale(x,new_min,new_max), old_x, dims=direction)
+    newX = mapslices(x -> scale(x,new_min,new_max;old_min=old_min,old_max=old_max), old_x, dims=direction)
 end
 
 scale(x::Missing,min_val,max_val;old_min,old_max) = missing
@@ -400,7 +400,7 @@ Objective function for optimization of interpolation kernel function and width.
 function interp_obj(inpt::Vector{Float64}, E, A, ests, e, LOOinds, kerns, samples,
         plan::Array{Float64,2}; rippa::Bool = false,
         variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
-        smooth = false, cond_max=cond_max, rbf_dist_metric = Distances.Euclidean(),
+        smooth::Union{Bool, Symbol} = false, cond_max::Float64=Inf,  cond_check::Bool=false, rbf_dist_metric = Distances.Euclidean(),
         smooth_user::Float64 = 0.0)
 
     
@@ -414,7 +414,7 @@ function interp_obj(inpt::Vector{Float64}, E, A, ests, e, LOOinds, kerns, sample
     #Wrapped in try catch-block to catch failure to solve linear eq. system
     E = try
         E = RMSErrorLOO!(E, A, ests, e, LOOinds, kern, samples, preprocessed_plan, smooth; rippa = rippa,
-        cond_max = cond_max, rbf_dist_metric = rbf_dist_metric)
+        cond_max = cond_max, rbf_dist_metric = rbf_dist_metric, cond_check=cond_check)
     catch 
         E = Inf
     end
@@ -432,7 +432,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
             rbf_dist_metric, rbf_opt_gens, kerns, rbf_opt_pop,
-            smooth, max_smooth, smooth_user = options
+            smooth, max_smooth, smooth_user, cond_check = options
 
     # Sample order for ScatteredInterpolation
     samples = vec(samples_org)
@@ -459,7 +459,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
         interp_obj(x,E,A,ests,e,LOOinds,kerns,samples,plan; 
                 rippa=rippa, variable_kernel_width=variable_kernel_width,
                 variable_dim_scaling=variable_dim_scaling, smooth=smooth,
-                cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,)
+                cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,cond_check=cond_check)
     end
 
     # Optimize the interpolant hyperparameters

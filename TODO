@@ -1,10 +1,6 @@
 ########## TODO
 
-##  Add benchmark information, potentially from several solvers.
-
-##  Increase rippa speed by reducing allocations
-
-##  Calculate condmax first then do inplace factorize
+##  
 
 ########## Potential speed improvements
 
