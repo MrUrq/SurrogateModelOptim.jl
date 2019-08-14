@@ -32,9 +32,9 @@ function print_f_opt(trace,new_samples,samples,plan)
         
     elseif trace == :verbose
         print("    Minimum sample value ")
-        printstyled(@sprintf("%.7g",new_min); color=:light_green, bold=true)
+        printstyled(@sprintf("%.7g",min(new_min,old_min)); color=:light_green, bold=true)
         print("\t(maximum = ")
-        printstyled(@sprintf("%.7g",new_max);)
+        printstyled(@sprintf("%.7g",max(new_max,old_max));)
         print(")")
 
         if isless(new_min,old_min)
