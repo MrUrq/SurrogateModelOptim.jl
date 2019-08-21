@@ -89,6 +89,30 @@ function std_infill(sm_interpolant)
     end
 end
 
+function srbf_infill(plan,samples,sm_interpolant,w)
+
+    df = distance_infill(plan,samples,sm_interpolant)
+    med = median_infill(sm_interpolant)
+
+    function (x)
+        out = med(x) + (1-w)*(1+df(x))
+        return out
+    end
+end
+
+function mrbf_infill(sm_interpolant,w)
+
+    df = std_infill(sm_interpolant)
+    med = median_infill(sm_interpolant)
+
+    function (x)
+        #out = med(x) + (1-w)*(1+df(x))
+        out = w*med(x) + (1-w)*df(x)
+        #out = med(x) + (1-w)*df(x)
+        return out
+    end
+end
+
 """
     infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol,1})
 
@@ -102,6 +126,30 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
     mean_infill_fun = mean_infill(sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
+    SRBF_infill_fun03 = srbf_infill(plan,samples,sm_interpolant,0.3)
+    SRBF_infill_fun05 = srbf_infill(plan,samples,sm_interpolant,0.5)
+    SRBF_infill_fun08 = srbf_infill(plan,samples,sm_interpolant,0.8)
+    SRBF_infill_fun095 = srbf_infill(plan,samples,sm_interpolant,0.95)
+    MRBF_infill_fun005 = mrbf_infill(sm_interpolant,0.05) 
+    MRBF_infill_fun01 = mrbf_infill(sm_interpolant,0.1) 
+    MRBF_infill_fun015 = mrbf_infill(sm_interpolant,0.15) 
+    MRBF_infill_fun02 = mrbf_infill(sm_interpolant,0.2) 
+    MRBF_infill_fun025 = mrbf_infill(sm_interpolant,0.25)
+    MRBF_infill_fun03 = mrbf_infill(sm_interpolant,0.3)
+    MRBF_infill_fun035 = mrbf_infill(sm_interpolant,0.35)
+    MRBF_infill_fun04 = mrbf_infill(sm_interpolant,0.4)
+    MRBF_infill_fun045 = mrbf_infill(sm_interpolant,0.45)
+    MRBF_infill_fun05 = mrbf_infill(sm_interpolant,0.5)
+    MRBF_infill_fun055 = mrbf_infill(sm_interpolant,0.55)
+    MRBF_infill_fun06 = mrbf_infill(sm_interpolant,0.6)
+    MRBF_infill_fun065 = mrbf_infill(sm_interpolant,0.65)
+    MRBF_infill_fun07 = mrbf_infill(sm_interpolant,0.7)
+    MRBF_infill_fun075 = mrbf_infill(sm_interpolant,0.75)
+    MRBF_infill_fun08 = mrbf_infill(sm_interpolant,0.8)
+    MRBF_infill_fun085 = mrbf_infill(sm_interpolant,0.85)
+    MRBF_infill_fun09 = mrbf_infill(sm_interpolant,0.9)
+    MRBF_infill_fun095 = mrbf_infill(sm_interpolant,0.95)
+
 
     #Get the infill objective functions
     call(f, x) = f(x)
@@ -110,7 +158,30 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
         :median => x -> median_infill_fun(x),
         :mean => x -> mean_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
-        :std => x -> std_infill_fun(x)
+        :std => x -> std_infill_fun(x),
+        :srbf03 => x -> SRBF_infill_fun03(x),
+        :srbf05 => x -> SRBF_infill_fun05(x),
+        :srbf08 => x -> SRBF_infill_fun08(x),
+        :srbf095 => x -> SRBF_infill_fun095(x),
+        :mrbf005 => x -> MRBF_infill_fun005(x),
+        :mrbf01 => x -> MRBF_infill_fun01(x),
+        :mrbf015 => x -> MRBF_infill_fun015(x),
+        :mrbf02 => x -> MRBF_infill_fun02(x),
+        :mrbf025 => x -> MRBF_infill_fun025(x),
+        :mrbf03 => x -> MRBF_infill_fun03(x),
+        :mrbf035 => x -> MRBF_infill_fun035(x),
+        :mrbf04 => x -> MRBF_infill_fun04(x),
+        :mrbf045 => x -> MRBF_infill_fun045(x),
+        :mrbf05 => x -> MRBF_infill_fun05(x),
+        :mrbf055 => x -> MRBF_infill_fun055(x),
+        :mrbf06 => x -> MRBF_infill_fun06(x),
+        :mrbf065 => x -> MRBF_infill_fun065(x),
+        :mrbf07 => x -> MRBF_infill_fun07(x),
+        :mrbf075 => x -> MRBF_infill_fun075(x),
+        :mrbf08 => x -> MRBF_infill_fun08(x),
+        :mrbf085 => x -> MRBF_infill_fun085(x),
+        :mrbf09 => x -> MRBF_infill_fun09(x),
+        :mrbf095 => x -> MRBF_infill_fun095(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
@@ -166,7 +237,7 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     while infill_incomplete && j <= 50
         try 
             res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
-                    FitnessScheme=ParetoFitnessScheme{length(infill_funcs)}(is_minimizing=true),
+                    FitnessScheme=ParetoFitnessScheme{length(infill_funcs[1:num_infill_points])}(is_minimizing=true),
                     SearchRange=search_range, ϵ=0.00001,
                     MaxFuncEvals=infill_iterations,
                     MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
@@ -183,7 +254,7 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     infill_prediction = Array{Float64,1}()
 
     # Take the num_infill_points number of infill points from the cycled list.
-    infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs)), num_infill_points)
+    infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs[1:num_infill_points])), num_infill_points)
     
     for i in infill_obj_funs
         pf = pareto_frontier(res_bboptim)

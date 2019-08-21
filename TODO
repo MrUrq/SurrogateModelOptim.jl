@@ -1,6 +1,10 @@
 ########## TODO
 
-##  
+##  Add improved infill criteria
+
+##  Use faster infill approach when num funcs is 1
+
+##  Document provided funcs
 
 ########## Potential speed improvements
 

@@ -84,5 +84,5 @@ function Base.show(io::IO, res::SurrogateResult)
         println(io, "  Mean axis scaling: \t","scaling is fixed")
     end
     println(io, "  Smooth: \t\t",res.options.smooth, " (set to :single if noise is expected)")
-    print(io, "  Returned surrogate contains all samples: ",res.options.create_final_surrogate)
+    println(io, "  Returned surrogate contains all samples: ",res.options.create_final_surrogate)
 end
