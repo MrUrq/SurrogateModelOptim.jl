@@ -234,17 +234,17 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     infill_incomplete = true
     j = 0
     res_bboptim = nothing
-    while infill_incomplete && j <= 50
+    while infill_incomplete && j <= 100
         try 
             res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
                     FitnessScheme=ParetoFitnessScheme{length(infill_funcs[1:num_infill_points])}(is_minimizing=true),
-                    SearchRange=search_range, ϵ=0.00001,
+                    SearchRange=search_range, ϵ=0.000001,
                     MaxFuncEvals=infill_iterations,
-                    MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
+                    MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
             infill_incomplete = false
         catch ex
             j += 1 
-            (j >= 50) && rethrow(ex)  #Show error if consistently failing
+            (j >= 100) && rethrow(ex)  #Show error if consistently failing
         end
     end
     
