@@ -436,9 +436,22 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
     # Sample order for ScatteredInterpolation
     samples = vec(samples_org)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
     # Create the hyperparameter search range based on the input options 
-    sr = construct_search_range(plan, variable_kernel_width,
-                                min_rbf_width, max_rbf_width, variable_dim_scaling,
+    sr = construct_search_range(plan, false,
+                                min_rbf_width, max_rbf_width, true,
                                 min_scale, max_scale, smooth, max_smooth)
 
                         
@@ -452,11 +465,11 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
     for i = 1:N
         LOOinds[:,i] = filter(x -> x != i, 1:N) # Get the leave one out sub indices
     end
-
+    
     # RBF hyperparameter objective function
     itp_obj = function (x)
         interp_obj(x,E,A,ests,e,LOOinds,kerns,samples,plan; 
-                rippa=rippa, variable_kernel_width=variable_kernel_width,
+                rippa=rippa, variable_kernel_width=false,
                 variable_dim_scaling=variable_dim_scaling, smooth=smooth,
                 cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,cond_check=cond_check)
     end
@@ -471,10 +484,99 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
             MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
             );
         
-    kern, scaling, smooth = extract_bboptim_hypers( res.archive_output.best_candidate,
+    kern, scaling, smoothing = extract_bboptim_hypers( res.archive_output.best_candidate,
+                                                    plan,kerns,false,
+                                                    variable_dim_scaling,smooth,smooth_user)
+    #@show best_fitness(res)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # Create the hyperparameter search range based on the input options 
+    sr = construct_search_range(plan, variable_kernel_width,
+                                min_rbf_width, max_rbf_width, variable_dim_scaling,
+                                min_scale, max_scale, smooth, max_smooth)
+
+            
+    # Pre-allocate for inplace functions    
+    N = length(samples) #Number of Leave-One-Out (LOO) errors
+    e = [[(i == j) ? true : false for i in 1:N] for j in 1:N]
+    E = Array{Float64}(undef,N)
+    A = zeros(Float64, N, N)    #RBF matrix A
+    ests = Array{Float64}(undef,N)    #Function estimate based on LOO
+    LOOinds = Array{Int}(undef,N - 1, N)
+    for i = 1:N
+        LOOinds[:,i] = filter(x -> x != i, 1:N) # Get the leave one out sub indices
+    end
+    
+    # RBF hyperparameter objective function
+    itp_obj = function (x)
+        interp_obj(x,E,A,ests,e,LOOinds,kerns,samples,plan; 
+                rippa=rippa, variable_kernel_width=variable_kernel_width,
+                variable_dim_scaling=variable_dim_scaling, smooth=smooth,
+                cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,cond_check=cond_check)
+    end
+
+
+    x0 = res.archive_output.best_candidate
+    #kern    scaling    smooth
+    x1=[[x0[1] for _ in 1:size(plan,2)]; [x0[2] for _ in 1:size(plan,2)]; x0[3:end]]
+    nvals=length(sr)
+    @assert length(x1)==length(sr)
+    pop = [x1[i] for i in 1:nvals, _ in 1:rbf_opt_pop÷2]
+
+    pop_rand = similar(pop)
+    for i in 1:size(pop_rand,2)
+        pop_rand[:,i] = BlackBoxOptim.Utils.latin_hypercube_sampling(first.(sr),last.(sr),1)
+    end
+    pop = [pop pop_rand]
+
+
+    # x0 = res.archive_output.best_candidate
+    # #kern    scaling    smooth
+    # x1=[[x0[1] for _ in 1:size(plan,2)]; [x0[2] for _ in 1:size(plan,2)]; x0[3:end]]
+    # nvals=length(sr)
+    # @assert length(x1)==length(sr)
+    # pop = [x1[i] for i in 1:nvals, _ in 1:1]
+
+    # pop_rand = Array{Float64,2}(undef,length(pop),rbf_opt_pop-1)
+    # for i in 1:size(pop_rand,2)
+    #     pop_rand[:,i] = BlackBoxOptim.Utils.latin_hypercube_sampling(first.(sr),last.(sr),1)
+    # end
+    # pop = [pop pop_rand]
+
+
+    # Optimize the interpolant hyperparameters
+    res = bboptimize(itp_obj; 
+            Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
+            TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
+            TargetFitness = 1e-5, FitnessTolerance = 1e-6,
+            PopulationSize = rbf_opt_pop,
+            MaxStepsWithoutProgress=rbf_opt_gens,
+            MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
+            Population=pop
+            );
+    #@show best_fitness(res)
+    kern, scaling, smoothing = extract_bboptim_hypers( res.archive_output.best_candidate,
                                                     plan,kerns,variable_kernel_width,
                                                     variable_dim_scaling,smooth,smooth_user)
-
+    
     # Return the optimized hyperparameters in the correct type
-    return RBFHypers(kern, scaling, smooth), best_fitness(res)
+    return RBFHypers(kern, scaling, smoothing), best_fitness(res)
 end

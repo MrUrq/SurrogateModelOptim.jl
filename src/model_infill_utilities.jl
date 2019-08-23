@@ -236,9 +236,13 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     res_bboptim = nothing
     while infill_incomplete && j <= 100
         try 
-            res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
-                    FitnessScheme=ParetoFitnessScheme{length(infill_funcs[1:num_infill_points])}(is_minimizing=true),
-                    SearchRange=search_range, ϵ=0.000001,
+            # res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
+            #         FitnessScheme=ParetoFitnessScheme{length(infill_funcs[1:num_infill_points])}(is_minimizing=true),
+            #         SearchRange=search_range, ϵ=0.000001,
+            #         MaxFuncEvals=infill_iterations,
+            #         MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
+            res_bboptim = bboptimize(x->infill_obj_fun(x)[1]; 
+                    SearchRange=search_range,
                     MaxFuncEvals=infill_iterations,
                     MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
             infill_incomplete = false
@@ -257,9 +261,10 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs[1:num_infill_points])), num_infill_points)
     
     for i in infill_obj_funs
-        pf = pareto_frontier(res_bboptim)
-        best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
-        bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
+        # pf = pareto_frontier(res_bboptim)
+        # best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
+        # bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
+        bo1_solution = best_candidate(res_bboptim)
 
         # Add the infill point if it does not exist in the plan or infill_plan
         v = copy(permutedims(bo1_solution'))
