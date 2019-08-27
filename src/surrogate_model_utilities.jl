@@ -7,24 +7,23 @@ and `a` is the weights of the RBF.
 """
 function _rippa(A, a)
     N = size(A, 1)           #Number of Leave-One-Out (LOO) errors
-    e = [[(i == j) ? true : false for i in 1:N] for j in 1:N]
+    xₖ = similar(A)
     E = Array{Float64}(undef,N)
 
-    _rippa!(E,e,A,a)
+    _rippa!(E,xₖ,A,a)
 end
 
+
 """
-    function _rippa!(E,e,A,a)
+    function _rippa!(E,xₖ,A,a)
 
 Same as _rippa but inplace.
 """
-function _rippa!(E,e,A,a)
+function _rippa!(E,xₖ,A,a)
     N = size(A, 1)           #Number of Leave-One-Out (LOO) errors
-    A_f = factorize(A)
-
-    for k = 1:N
-        @inbounds xₖ = A_f \ e[k]       #xₖ solution to Ax[k] = e[k]   - Solved N times
-        @inbounds E[k] = a[k] / xₖ[k]   #Estimated error for k-th subset
+    xₖ = A\I
+    @inbounds for k = 1:N
+        E[k] = a[k] / xₖ[k,k]   #Estimated error for k-th subset
     end
 
     return E
@@ -52,14 +51,14 @@ function RMSErrorLOO(interp, samples, plan, smooth;
     for i = 1:N
         LOOinds[:,i] = filter(x -> x != i, 1:N) # Get the leave one out sub indices
     end
-    e = [[(i == j) ? true : false for i in 1:N] for j in 1:N]
+    xₖ = similar(A)
 
-    RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan, smooth;
+    RMSErrorLOO!(E, A, ests, xₖ, LOOinds, interp, samples, plan, smooth;
     cond_max=cond_max, rippa=rippa, rbf_dist_metric = rbf_dist_metric)
 end
 
 
-function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
+function RMSErrorLOO!(E, A, ests, xₖ, LOOinds, interp::U,
  samples, plan::T, smooth; cond_max::Float64=1e6, cond_check::Bool=false,
   rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray where U <: AbstractArray
 
@@ -80,7 +79,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
             E .= Inf
         else
             #RBF error estimation based on Rippas algorithm
-            E = _rippa!(E, e, A, itp.w)
+            E = _rippa!(E, xₖ, A, itp.w)
             RMSE = sqrt(mean(E.^2))
         end
     else
@@ -112,7 +111,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
     return RMSE
 end
 
-function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
+function RMSErrorLOO!(E, A, ests, xₖ, LOOinds, interp, samples, plan::T, smooth;
  cond_max::Float64=1e6, cond_check::Bool=false, rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray
 
     N = length(samples)
@@ -131,7 +130,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
             E .= Inf
         else
             #RBF error estimation based on Rippas algorithm
-            E = _rippa!(E, e, A, itp.w)
+            E = _rippa!(E, xₖ, A, itp.w)
             RMSE = sqrt(mean(E.^2))
         end
     else

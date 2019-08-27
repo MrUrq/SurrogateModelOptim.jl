@@ -8,6 +8,10 @@
 
 ##  Try with strange pop number
 
+##  Improve mixed rbf opt code
+
+##  If number of infill points is larger than 1 use perto variant
+
 ########## Potential speed improvements
 
 ##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation

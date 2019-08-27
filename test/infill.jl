@@ -19,7 +19,7 @@
     @test SurrogateModelOptim.std_infill(x->(x, 2x, 4x))(1) == -1*std([1 2 4])
 
     #Test that try-catch block correctly shows exception when enough iterations have passed
-    @test_throws ArgumentError SurrogateModelOptim.infill_opt(search_range,2,2,sum,[:std,:med],plan,sum,SurrogateModelOptim.Options())
+    @test_throws BoundsError SurrogateModelOptim.infill_opt(search_range,2,2,sum,[:med],plan,sum,SurrogateModelOptim.Options())
 
     #Make sure correct input format is used
     @test_throws ErrorException model_infill(search_range,permutedims(plan),samples,sum;
