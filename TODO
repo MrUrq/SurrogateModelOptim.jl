@@ -12,6 +12,13 @@
 
 ##  If number of infill points is larger than 1 use perto variant
 
+##  Fast method where relearning only happen every few .. use global results for all following iters, @spawn?
+
+##  Parallel function evaluation? @spawn
+
+##  Run hyper optimisation in smaller batches, @spawn each batch
+
+
 ########## Potential speed improvements
 
 ##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation

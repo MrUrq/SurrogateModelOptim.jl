@@ -563,12 +563,12 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
 
     # Optimize the interpolant hyperparameters
     res = bboptimize(itp_obj; 
-            Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
+            Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens*10,
             TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
             TargetFitness = 1e-5, FitnessTolerance = 1e-6,
             PopulationSize = rbf_opt_pop,
-            MaxStepsWithoutProgress=rbf_opt_gens,
-            MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
+            MaxStepsWithoutProgress=rbf_opt_gens*10,
+            MaxNumStepsWithoutFuncEvals=rbf_opt_gens*10,
             Population=pop
             );
     #@show best_fitness(res)
