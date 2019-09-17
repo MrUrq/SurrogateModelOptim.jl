@@ -8,10 +8,13 @@ of interpolants has marginal improvement to the optimization above 10 interpolan
 ```julia
 num_start_samples::Int = 5                                      # Samples included in the LHC sampling plan
 trace::Symbol = :compact                                        # Print the progress. Options include :silent, :compact and :verbose
-sampling_plan_opt_gens::Int = 1_000                             # Iterations used to optimize the LHC sampling plan
+sampling_plan_opt_gens::Int = 2_500                             # Iterations used to optimize the LHC sampling plan
 rippa::Bool = true                                              # Rippas algorithm to reduce computational effort optimizing the surrogate
-kerns = [ScatteredInterpolation.Gaussian]                       # RBF kernels to choose from
-rbf_opt_gens::Int = 1_000                                       # Generations that the RBF hyperparameters are optimized
+kerns = [ScatteredInterpolation.Gaussian,
+         ScatteredInterpolation.InverseMultiquadratic,
+         ScatteredInterpolation.InverseQuadratic]               # RBF kernels to choose from
+rbf_opt_gens::Int = 2_500                                       # Generations that the RBF hyperparameters are optimized
+constrained_seed_gens::Int = 2_500                              # Generations optimising the RBF hyperparameters in a constrained
 rbf_opt_pop::Int = 50                                           # Population size of RBF hyperparameter optimization
 rbf_opt_method::Symbol = :adaptive_de_rand_1_bin_radiuslimited  # BlackBoxOptim optimization method for RBF hyperparameters
 rbf_dist_metric = Distances.Euclidean()                         # Distance metric used to create the RBF
@@ -24,7 +27,7 @@ min_rbf_width::Float64 = 0.0                                    # Minimum RBF wi
 max_scale::Float64 = 1.0                                        # Maximum linear input dimension scaling factor
 min_scale::Float64 = 0.0                                        # Minimum linear input dimension scaling factor
 num_interpolants::Int = 10                                      # Number of interpolants in ensemble
-smooth = false                                                  # Apply smoothing factor, useful for functions with noise
+smooth = :single                                                # Apply smoothing factor, useful for functions with noise
                                                                 # false turned off, :single one factor for all points,
                                                                 # :variable individual factor for each point, 
                                                                 # :single_user user supplied value
@@ -33,8 +36,10 @@ smooth_user::Float64 = 0.0                                      # User supplied 
 iterations::Int64 = 5                                           # Number of infill iterations to be run
 num_infill_points::Int64 = 1                                    # Number of infill points per iteration
 parallel_surrogate::Bool = true                                 # Create each surrogate in the ensemble in parallel
-infill_funcs::Array{Symbol,1} = [:std,:median]                  # Infill criteria, cycled through 
-infill_iterations::Int64 = 10_000                               # Iterations to add infill points to the design space
+infill_funcs::Array{Symbol,1} = [:std,:median,:wstdmed03,
+                                 :median,:wstdmed06,:median,
+                                 :wstdmed09,:median]            # Infill criteria, cycled through 
+infill_iterations::Int64 = 25_000                               # Iterations to add infill points to the design space
 create_final_surrogate::Bool = false                            # Option to re-create the surrogate using all evaluated samples 
 ```
 
@@ -55,9 +60,16 @@ each kernel is optimized individually for each sampled point. This does increase
 degrees of freedom which can lead to overfitting when the number of sample points is
 small. The performance when using `variable_kernel_width = true` can suffer initially when
 the number of samples is small but the overall convergence tends to be better. The
-recommendation is to leave the option `true` at all times. It can be worth experimenting
-with adding a few samples where `variable_kernel_width = false` early in the optimization
-to increase the convergence speed. 
+recommendation is to leave the option `true` at all times. 
+
+The number of hyperparameters to optimise increases with the number of points as 
+`2N` when `variable_kernel_width` is set to `true`. To increase convergence speed of the
+hyperparameter optimisation, a few initial iterations can be performed in the constrained
+space (as if `variable_kernel_width=false`) to seed the full unconstrained optimisation.
+This can increase convergence speed and is particularly useful when optimising using few
+`rbf_opt_gens`. `constrained_seed_gens` controls the number of iterations to perform in the 
+constrained space for seeding. It is recommended to use this as the convergence rate tends to 
+increase. 
 
 Radial Basis Function interpolation is as the name suggests, radial in space. This can
 create problems when vastly differing input to output dimensions are used such as in the

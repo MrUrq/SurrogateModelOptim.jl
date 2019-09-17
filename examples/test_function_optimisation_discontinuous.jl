@@ -10,7 +10,7 @@ search_range=[(0.0,1.0)]
 # Optimize the test function
 result = smoptimize(Forrester_disc, search_range;
                     options=SurrogateModelOptim.Options(
-                    iterations=10,
+                    iterations=15,
                     num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
                     smooth=:single,

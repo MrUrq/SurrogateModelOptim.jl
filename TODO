@@ -1,14 +1,10 @@
 ########## TODO
 
-##  Document provided funcs
+##  Add benchmark results - once settled for publication
 
-##  Make sure documentation works
+##  Add doctests - currently not working easily
 
-##  Make sure examples work
-
-##  Add doctests
-
-##  Fast options and regular options
+##  Fast, regular and benchmark options - document usage
 
 ########## Potential speed improvements
 

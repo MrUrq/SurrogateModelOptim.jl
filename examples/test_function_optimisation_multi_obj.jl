@@ -6,7 +6,7 @@ using Parameters
 using Printf
 
 options=SurrogateModelOptim.Options(
-    iterations=10,
+    iterations=15,
     num_interpolants=10, #Preferably even number of added processes
     num_start_samples=5,
     constrained_seed_gens=0,

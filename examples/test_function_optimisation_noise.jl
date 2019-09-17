@@ -19,7 +19,7 @@ end
 result = smoptimize(noisy_rosenbrock_2D, search_range;
                     options=SurrogateModelOptim.Options(
                     smooth=:single,
-                    iterations=10,
+                    iterations=15,
                     num_interpolants=10, #Preferably even number of added processes
                     num_start_samples=5,
                     create_final_surrogate=true, #Use the results from last iteration to

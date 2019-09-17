@@ -9,8 +9,8 @@ Options configurable by the user with recommended default values.
     sampling_plan_opt_gens::Int = 2_500
     rippa::Bool = true
     kerns = [ScatteredInterpolation.Gaussian,ScatteredInterpolation.InverseMultiquadratic,ScatteredInterpolation.InverseQuadratic]
-    rbf_opt_gens::Int = 2_500
-    constrained_seed_gens::Int = 2_500
+    rbf_opt_gens::Int = 1000
+    constrained_seed_gens::Int = 1000
     rbf_opt_pop::Int = 50
     rbf_opt_method::Symbol = :adaptive_de_rand_1_bin_radiuslimited
     rbf_dist_metric = Distances.Euclidean()
