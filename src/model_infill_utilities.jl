@@ -284,6 +284,8 @@ duplicated points.
 """
 function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,infill_plan,infill_type,num_infill_points,infill_obj_fun,infill_funcs,res_bboptim)
     
+    
+    try # Solution to handle the situation when pareto_frontier is not available
     for i = 1:(num_infill_points-size(infill_plan,2)) 
         infill_samples = Array{Float64,2}(undef,1,size(infill_plan,2))
         for i = 1:size(infill_plan,2)
@@ -310,6 +312,8 @@ function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,i
             infill_plan = [infill_plan v]            
             push!(infill_type,:pareto)
         end       
+    end
+    catch
     end
     
     # Add random points if there aren't enough in the pareto front
