@@ -11,6 +11,7 @@
                         num_interpolants=1,
                         num_start_samples=2,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -31,6 +32,7 @@
                         num_interpolants=2,
                         num_start_samples=2,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -51,6 +53,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -71,6 +74,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=2,
                         trace=:silent,
@@ -91,6 +95,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=2,
                         trace=:silent,
@@ -113,6 +118,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=2,
                         trace=:silent,
@@ -137,6 +143,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -157,6 +164,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -177,6 +185,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -197,6 +206,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -217,6 +227,7 @@
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=0,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -234,10 +245,32 @@
     # Test that the infill functions work
     result = smoptimize(rosenbrock_2D, [(-5.0,5.0),(-5.0,5.0)];
                         options=SurrogateModelOptim.Options(
+                        iterations=7,
+                        num_interpolants=2,
+                        num_start_samples=5,
+                        rbf_opt_gens=5,
+                        constrained_seed_gens=0,
+                        infill_iterations=5,
+                        num_infill_points=1,
+                        trace=:silent,
+                        rippa = true,
+                        variable_kernel_width = true,
+                        variable_dim_scaling = false,
+                        parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
+                        infill_funcs=[:min,:mean,:median,:std,:dist,:wstdmed005]
+                            ));
+    @test result.infill_type == [:min,:mean,:median,:std,:dist,:wstdmed005,:min]
+
+    
+    # Test that the seed optimisation works
+    result = smoptimize(rosenbrock_2D, [(-5.0,5.0),(-5.0,5.0)];
+                        options=SurrogateModelOptim.Options(
                         iterations=6,
                         num_interpolants=2,
                         num_start_samples=5,
                         rbf_opt_gens=5,
+                        constrained_seed_gens=5,
                         infill_iterations=5,
                         num_infill_points=1,
                         trace=:silent,
@@ -248,5 +281,5 @@
                         sampling_plan_opt_gens = 5,
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
-    @test result.infill_type == [:min,:mean,:median,:std,:dist,:min]
+    @test typeof(result) == SurrogateModelOptim.SurrogateResult
 end

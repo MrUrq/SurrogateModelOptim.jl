@@ -1,23 +1,14 @@
 ########## TODO
 
-##  Add improved infill criteria
-
-##  Use faster infill approach when num funcs is 1
-
 ##  Document provided funcs
 
-##  Try with strange pop number
+##  Make sure documentation works
 
-##  Improve mixed rbf opt code
+##  Make sure examples work
 
-##  If number of infill points is larger than 1 use perto variant
+##  Add doctests
 
-##  Fast method where relearning only happen every few .. use global results for all following iters, @spawn?
-
-##  Parallel function evaluation? @spawn
-
-##  Run hyper optimisation in smaller batches, @spawn each batch
-
+##  Fast options and regular options
 
 ########## Potential speed improvements
 
@@ -47,3 +38,9 @@
 ##  Add option to use Generalized RBF Interpolant. Needs updates to types
 
 ##  Add option to use a cheap interpolant to speed up the iterations, e.g. IDW
+
+##  Fast method where relearning only happens every few .. use global results for all following iters, @spawn?
+
+##  Parallel function evaluation? @spawn
+
+##  Run hyper optimisation in smaller batches, e.g. @spawn each batch

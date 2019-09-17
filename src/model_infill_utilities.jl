@@ -89,26 +89,19 @@ function std_infill(sm_interpolant)
     end
 end
 
-function srbf_infill(plan,samples,sm_interpolant,w)
+"""
+    weighted_med_std_infill(sm_interpolant)
 
-    df = distance_infill(plan,samples,sm_interpolant)
-    med = median_infill(sm_interpolant)
-
-    function (x)
-        out = med(x) + (1-w)*(1+df(x))
-        return out
-    end
-end
-
-function mrbf_infill(sm_interpolant,w)
+Returns an anonymous function that calculates the weighted sum of the standard
+deviation of the surrogate and the median location.
+"""
+function weighted_med_std_infill(sm_interpolant,w)
 
     df = std_infill(sm_interpolant)
     med = median_infill(sm_interpolant)
 
     function (x)
-        #out = med(x) + (1-w)*(1+df(x))
         out = w*med(x) + (1-w)*df(x)
-        #out = med(x) + (1-w)*df(x)
         return out
     end
 end
@@ -126,29 +119,25 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
     mean_infill_fun = mean_infill(sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
-    SRBF_infill_fun03 = srbf_infill(plan,samples,sm_interpolant,0.3)
-    SRBF_infill_fun05 = srbf_infill(plan,samples,sm_interpolant,0.5)
-    SRBF_infill_fun08 = srbf_infill(plan,samples,sm_interpolant,0.8)
-    SRBF_infill_fun095 = srbf_infill(plan,samples,sm_interpolant,0.95)
-    MRBF_infill_fun005 = mrbf_infill(sm_interpolant,0.05) 
-    MRBF_infill_fun01 = mrbf_infill(sm_interpolant,0.1) 
-    MRBF_infill_fun015 = mrbf_infill(sm_interpolant,0.15) 
-    MRBF_infill_fun02 = mrbf_infill(sm_interpolant,0.2) 
-    MRBF_infill_fun025 = mrbf_infill(sm_interpolant,0.25)
-    MRBF_infill_fun03 = mrbf_infill(sm_interpolant,0.3)
-    MRBF_infill_fun035 = mrbf_infill(sm_interpolant,0.35)
-    MRBF_infill_fun04 = mrbf_infill(sm_interpolant,0.4)
-    MRBF_infill_fun045 = mrbf_infill(sm_interpolant,0.45)
-    MRBF_infill_fun05 = mrbf_infill(sm_interpolant,0.5)
-    MRBF_infill_fun055 = mrbf_infill(sm_interpolant,0.55)
-    MRBF_infill_fun06 = mrbf_infill(sm_interpolant,0.6)
-    MRBF_infill_fun065 = mrbf_infill(sm_interpolant,0.65)
-    MRBF_infill_fun07 = mrbf_infill(sm_interpolant,0.7)
-    MRBF_infill_fun075 = mrbf_infill(sm_interpolant,0.75)
-    MRBF_infill_fun08 = mrbf_infill(sm_interpolant,0.8)
-    MRBF_infill_fun085 = mrbf_infill(sm_interpolant,0.85)
-    MRBF_infill_fun09 = mrbf_infill(sm_interpolant,0.9)
-    MRBF_infill_fun095 = mrbf_infill(sm_interpolant,0.95)
+    w_std_med_infill_fun005 = weighted_med_std_infill(sm_interpolant,0.05) 
+    w_std_med_infill_fun01 = weighted_med_std_infill(sm_interpolant,0.1) 
+    w_std_med_infill_fun015 = weighted_med_std_infill(sm_interpolant,0.15) 
+    w_std_med_infill_fun02 = weighted_med_std_infill(sm_interpolant,0.2) 
+    w_std_med_infill_fun025 = weighted_med_std_infill(sm_interpolant,0.25)
+    w_std_med_infill_fun03 = weighted_med_std_infill(sm_interpolant,0.3)
+    w_std_med_infill_fun035 = weighted_med_std_infill(sm_interpolant,0.35)
+    w_std_med_infill_fun04 = weighted_med_std_infill(sm_interpolant,0.4)
+    w_std_med_infill_fun045 = weighted_med_std_infill(sm_interpolant,0.45)
+    w_std_med_infill_fun05 = weighted_med_std_infill(sm_interpolant,0.5)
+    w_std_med_infill_fun055 = weighted_med_std_infill(sm_interpolant,0.55)
+    w_std_med_infill_fun06 = weighted_med_std_infill(sm_interpolant,0.6)
+    w_std_med_infill_fun065 = weighted_med_std_infill(sm_interpolant,0.65)
+    w_std_med_infill_fun07 = weighted_med_std_infill(sm_interpolant,0.7)
+    w_std_med_infill_fun075 = weighted_med_std_infill(sm_interpolant,0.75)
+    w_std_med_infill_fun08 = weighted_med_std_infill(sm_interpolant,0.8)
+    w_std_med_infill_fun085 = weighted_med_std_infill(sm_interpolant,0.85)
+    w_std_med_infill_fun09 = weighted_med_std_infill(sm_interpolant,0.9)
+    w_std_med_infill_fun095 = weighted_med_std_infill(sm_interpolant,0.95)
 
 
     #Get the infill objective functions
@@ -159,29 +148,25 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
         :mean => x -> mean_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
         :std => x -> std_infill_fun(x),
-        :srbf03 => x -> SRBF_infill_fun03(x),
-        :srbf05 => x -> SRBF_infill_fun05(x),
-        :srbf08 => x -> SRBF_infill_fun08(x),
-        :srbf095 => x -> SRBF_infill_fun095(x),
-        :mrbf005 => x -> MRBF_infill_fun005(x),
-        :mrbf01 => x -> MRBF_infill_fun01(x),
-        :mrbf015 => x -> MRBF_infill_fun015(x),
-        :mrbf02 => x -> MRBF_infill_fun02(x),
-        :mrbf025 => x -> MRBF_infill_fun025(x),
-        :mrbf03 => x -> MRBF_infill_fun03(x),
-        :mrbf035 => x -> MRBF_infill_fun035(x),
-        :mrbf04 => x -> MRBF_infill_fun04(x),
-        :mrbf045 => x -> MRBF_infill_fun045(x),
-        :mrbf05 => x -> MRBF_infill_fun05(x),
-        :mrbf055 => x -> MRBF_infill_fun055(x),
-        :mrbf06 => x -> MRBF_infill_fun06(x),
-        :mrbf065 => x -> MRBF_infill_fun065(x),
-        :mrbf07 => x -> MRBF_infill_fun07(x),
-        :mrbf075 => x -> MRBF_infill_fun075(x),
-        :mrbf08 => x -> MRBF_infill_fun08(x),
-        :mrbf085 => x -> MRBF_infill_fun085(x),
-        :mrbf09 => x -> MRBF_infill_fun09(x),
-        :mrbf095 => x -> MRBF_infill_fun095(x)
+        :wstdmed005 => x -> w_std_med_infill_fun005(x),
+        :wstdmed01 => x -> w_std_med_infill_fun01(x),
+        :wstdmed015 => x -> w_std_med_infill_fun015(x),
+        :wstdmed02 => x -> w_std_med_infill_fun02(x),
+        :wstdmed025 => x -> w_std_med_infill_fun025(x),
+        :wstdmed03 => x -> w_std_med_infill_fun03(x),
+        :wstdmed035 => x -> w_std_med_infill_fun035(x),
+        :wstdmed04 => x -> w_std_med_infill_fun04(x),
+        :wstdmed045 => x -> w_std_med_infill_fun045(x),
+        :wstdmed05 => x -> w_std_med_infill_fun05(x),
+        :wstdmed055 => x -> w_std_med_infill_fun055(x),
+        :wstdmed06 => x -> w_std_med_infill_fun06(x),
+        :wstdmed065 => x -> w_std_med_infill_fun065(x),
+        :wstdmed07 => x -> w_std_med_infill_fun07(x),
+        :wstdmed075 => x -> w_std_med_infill_fun075(x),
+        :wstdmed08 => x -> w_std_med_infill_fun08(x),
+        :wstdmed085 => x -> w_std_med_infill_fun085(x),
+        :wstdmed09 => x -> w_std_med_infill_fun09(x),
+        :wstdmed095 => x -> w_std_med_infill_fun095(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
@@ -235,16 +220,20 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     j = 0
     res_bboptim = nothing
     while infill_incomplete && j <= 100
-        try 
-            # res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
-            #         FitnessScheme=ParetoFitnessScheme{length(infill_funcs[1:num_infill_points])}(is_minimizing=true),
-            #         SearchRange=search_range, ϵ=0.000001,
-            #         MaxFuncEvals=infill_iterations,
-            #         MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
-            res_bboptim = bboptimize(x->infill_obj_fun(x)[1]; 
-                    SearchRange=search_range,
-                    MaxFuncEvals=infill_iterations,
-                    MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
+        try
+            if num_infill_points > 1
+                #Multi-objective optimisation when number of infill points is larger than 1
+                res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
+                        FitnessScheme=ParetoFitnessScheme{length(infill_funcs[1:num_infill_points])}(is_minimizing=true),
+                        SearchRange=search_range, ϵ=0.000001,
+                        MaxFuncEvals=infill_iterations,
+                        MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
+            else
+                res_bboptim = bboptimize(x->infill_obj_fun(x)[1]; 
+                        SearchRange=search_range,
+                        MaxFuncEvals=infill_iterations,
+                        MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
+            end
             infill_incomplete = false
         catch ex
             j += 1 
