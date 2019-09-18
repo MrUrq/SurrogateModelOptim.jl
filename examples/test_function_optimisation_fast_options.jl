@@ -11,7 +11,7 @@ search_range=[(-5.0,5.0),(-5.0,5.0)]
 result = smoptimize(rosenbrock_2D, search_range;
                     options=SurrogateModelOptim.Options( 
                     SurrogateModelOptim.fast_opts(), #Run the suggested fast options to increase speed of surrogate optimisation
-                    iterations=45,
+                    iterations=65,
                     create_final_surrogate=true, #Use the results from last iteration to
                                                  #re-create the surrogate before using it for plotting
                         )) 

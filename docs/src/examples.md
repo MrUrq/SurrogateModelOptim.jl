@@ -1,7 +1,11 @@
 # Examples
 Most of the flexibility is left for the user to create and tailor to their specific needs.
 There are several examples located in `examples/` of different ways the optimization
-package can be used. Below is a brief explanation of the examples. 
+package can be used. To run all simply do
+```julia
+julia> include(joinpath(dirname(pathof(SurrogateModelOptim)), "../examples/test_all.jl"))
+```
+Below is a brief explanation of the examples. 
 
 ## Noisy optimization
 Optimization of noisy functions requires no special treatment except that `smooth` is used
@@ -30,3 +34,9 @@ Constrained optimization can be performed by adding an additional penalty after 
 surrogate model has been created. Note that it is important to add it after the creation
 to keep the function as smooth as possible. If it is added before the creation, the
 surrogate accuracy will suffer in the transition area where the penalty was added.
+
+## Fast options
+Run an example using the options for running the optimisation fast. This is not
+a recommended settings to use. Use another optimisation package such as `Optim.jl` or
+`BlackBoxOptim.jl` if the function evaluation is fast compared to the surrogate model creation.
+Can be useful for faster validation of code. 

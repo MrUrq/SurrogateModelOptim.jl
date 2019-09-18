@@ -10,9 +10,10 @@ search_range=[(-5.0,5.0),(-5.0,5.0)]
 
 result = smoptimize(rosenbrock_2D, search_range;
                     options=SurrogateModelOptim.Options(
-                    iterations=15,
+                    smooth=false, # Should only be false for smooth deterministic functions (noise free)
+                    iterations=16,
                     num_interpolants=10, #Preferably even number of added processes
-                    num_start_samples=5,
+                    num_start_samples=4,
                     create_final_surrogate=true, #Use the results from last iteration to
                                                  #re-create the surrogate before using it for plotting
                         )) 

@@ -6,9 +6,10 @@ using Parameters
 using Printf
 
 options=SurrogateModelOptim.Options(
-    iterations=15,
+    iterations=10,
+    smooth=false, # Should only be false for smooth deterministic functions (noise free)
     num_interpolants=10, #Preferably even number of added processes
-    num_start_samples=5,
+    num_start_samples=4,
     constrained_seed_gens=0,
     rbf_opt_gens=1000,
     create_final_surrogate=true, #Use the results from last iteration to
