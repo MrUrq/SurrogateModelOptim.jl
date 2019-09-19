@@ -7,8 +7,11 @@ using Printf
 
 options=SurrogateModelOptim.Options(
     iterations=10,
+    smooth=false, # Should only be false for smooth deterministic functions (noise free)
     num_interpolants=10, #Preferably even number of added processes
-    num_start_samples=5,
+    num_start_samples=4,
+    constrained_seed_gens=0,
+    rbf_opt_gens=1000,
     create_final_surrogate=true, #Use the results from last iteration to
                                  #re-create the surrogate before using it for plotting
         )
@@ -55,17 +58,17 @@ function multi_objective_smoptimize(f,search_range,options)
     
         #We add two points per iteration, one exploring and one exploiting sample
         sm_med = x-> median.(sm(x))
-        sm_std = x-> std.(sm(x))
+        sm_std = x-> -1 .*std.(sm(x))
         
         res_med = bboptimize(sm_med; Method=:borg_moea,
                 FitnessScheme=ParetoFitnessScheme{n_funcs}(is_minimizing=true),
                 SearchRange=search_range, NumDimensions=size(plan_all,2), ϵ=0.05,
-                MaxSteps=50000, TraceInterval=1.0, TraceMode=:silent);
+                MaxSteps=10_000, TraceInterval=1.0, TraceMode=:silent);
 
         res_std = bboptimize(sm_std; Method=:borg_moea,
                 FitnessScheme=ParetoFitnessScheme{n_funcs}(is_minimizing=true),
                 SearchRange=search_range, NumDimensions=size(plan_all,2), ϵ=0.05,
-                MaxSteps=50000, TraceInterval=1.0, TraceMode=:silent);
+                MaxSteps=10_000, TraceInterval=1.0, TraceMode=:silent);
         
 
         #Add two points randomly selected points from the pareto front

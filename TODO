@@ -1,6 +1,10 @@
 ########## TODO
 
-##  
+##  Add benchmark results - once settled for publication
+
+##  Add doctests - currently not working easily
+
+##  Fast, regular and benchmark options - document usage
 
 ########## Potential speed improvements
 
@@ -30,3 +34,9 @@
 ##  Add option to use Generalized RBF Interpolant. Needs updates to types
 
 ##  Add option to use a cheap interpolant to speed up the iterations, e.g. IDW
+
+##  Fast method where relearning only happens every few .. use global results for all following iters, @spawn?
+
+##  Parallel function evaluation? @spawn
+
+##  Run hyper optimisation in smaller batches, e.g. @spawn each batch

@@ -6,10 +6,11 @@ Options configurable by the user with recommended default values.
 @with_kw struct Options
     num_start_samples::Int = 5
     trace::Symbol = :compact
-    sampling_plan_opt_gens::Int = 1_000
+    sampling_plan_opt_gens::Int = 2_500
     rippa::Bool = true
-    kerns = [ScatteredInterpolation.Gaussian]
-    rbf_opt_gens::Int = 1_000
+    kerns = [ScatteredInterpolation.Gaussian,ScatteredInterpolation.InverseMultiquadratic,ScatteredInterpolation.InverseQuadratic]
+    rbf_opt_gens::Int = 2_500
+    constrained_seed_gens::Int = 2_500
     rbf_opt_pop::Int = 50
     rbf_opt_method::Symbol = :adaptive_de_rand_1_bin_radiuslimited
     rbf_dist_metric = Distances.Euclidean()
@@ -22,14 +23,14 @@ Options configurable by the user with recommended default values.
     max_scale::Float64 = 1.0
     min_scale::Float64 = 0.0
     num_interpolants::Int = 10
-    smooth = false
+    smooth = :single
     max_smooth::Float64 = 0.005
     smooth_user::Float64 = 0.0
     iterations::Int64 = 5
     num_infill_points::Int64 = 1
     parallel_surrogate::Bool = true
-    infill_funcs::Array{Symbol,1} = [:std,:median]
-    infill_iterations::Int64 = 10_000
+    infill_funcs::Array{Symbol,1} = [:std,:median,:wstdmed03,:median,:wstdmed06,:median,:wstdmed09,:median]
+    infill_iterations::Int64 = 25_000
     create_final_surrogate::Bool = false
 
     @assert ((smooth == false) || (smooth == :variable) || 
@@ -38,6 +39,20 @@ Options configurable by the user with recommended default values.
     @assert ((trace == :silent) || (trace == :compact) || 
     (trace == :verbose)) "Not supported trace option"
 end
+
+fast_opts() = Options(
+    sampling_plan_opt_gens=100,
+    kerns = [ScatteredInterpolation.Gaussian],
+    rbf_opt_gens = 100,
+    constrained_seed_gens = 0,
+    rbf_opt_pop = 20,
+    variable_kernel_width = false,
+    #variable_dim_scaling = false,
+    num_interpolants = 5,
+    smooth = :single_user,
+    smooth_user = 1e-7,
+    infill_iterations = 2_500
+                        )
 
 
 """
@@ -84,5 +99,5 @@ function Base.show(io::IO, res::SurrogateResult)
         println(io, "  Mean axis scaling: \t","scaling is fixed")
     end
     println(io, "  Smooth: \t\t",res.options.smooth, " (set to :single if noise is expected)")
-    print(io, "  Returned surrogate contains all samples: ",res.options.create_final_surrogate)
+    println(io, "  Returned surrogate contains all samples: ",res.options.create_final_surrogate)
 end

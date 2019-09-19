@@ -90,6 +90,23 @@ function std_infill(sm_interpolant)
 end
 
 """
+    weighted_med_std_infill(sm_interpolant)
+
+Returns an anonymous function that calculates the weighted sum of the standard
+deviation of the surrogate and the median location.
+"""
+function weighted_med_std_infill(sm_interpolant,w)
+
+    df = std_infill(sm_interpolant)
+    med = median_infill(sm_interpolant)
+
+    function (x)
+        out = w*med(x) + (1-w)*df(x)
+        return out
+    end
+end
+
+"""
     infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol,1})
 
 Returns the infill objective function based on the names supplied 
@@ -102,6 +119,26 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
     mean_infill_fun = mean_infill(sm_interpolant)
     dist_infill_fun = distance_infill(plan,samples,sm_interpolant)    
     std_infill_fun = std_infill(sm_interpolant)  
+    w_std_med_infill_fun005 = weighted_med_std_infill(sm_interpolant,0.05) 
+    w_std_med_infill_fun01 = weighted_med_std_infill(sm_interpolant,0.1) 
+    w_std_med_infill_fun015 = weighted_med_std_infill(sm_interpolant,0.15) 
+    w_std_med_infill_fun02 = weighted_med_std_infill(sm_interpolant,0.2) 
+    w_std_med_infill_fun025 = weighted_med_std_infill(sm_interpolant,0.25)
+    w_std_med_infill_fun03 = weighted_med_std_infill(sm_interpolant,0.3)
+    w_std_med_infill_fun035 = weighted_med_std_infill(sm_interpolant,0.35)
+    w_std_med_infill_fun04 = weighted_med_std_infill(sm_interpolant,0.4)
+    w_std_med_infill_fun045 = weighted_med_std_infill(sm_interpolant,0.45)
+    w_std_med_infill_fun05 = weighted_med_std_infill(sm_interpolant,0.5)
+    w_std_med_infill_fun055 = weighted_med_std_infill(sm_interpolant,0.55)
+    w_std_med_infill_fun06 = weighted_med_std_infill(sm_interpolant,0.6)
+    w_std_med_infill_fun065 = weighted_med_std_infill(sm_interpolant,0.65)
+    w_std_med_infill_fun07 = weighted_med_std_infill(sm_interpolant,0.7)
+    w_std_med_infill_fun075 = weighted_med_std_infill(sm_interpolant,0.75)
+    w_std_med_infill_fun08 = weighted_med_std_infill(sm_interpolant,0.8)
+    w_std_med_infill_fun085 = weighted_med_std_infill(sm_interpolant,0.85)
+    w_std_med_infill_fun09 = weighted_med_std_infill(sm_interpolant,0.9)
+    w_std_med_infill_fun095 = weighted_med_std_infill(sm_interpolant,0.95)
+
 
     #Get the infill objective functions
     call(f, x) = f(x)
@@ -110,7 +147,26 @@ function infill_objective(sm_interpolant,plan,samples,infill_funcs::Array{Symbol
         :median => x -> median_infill_fun(x),
         :mean => x -> mean_infill_fun(x),
         :dist => x -> dist_infill_fun(x),
-        :std => x -> std_infill_fun(x)
+        :std => x -> std_infill_fun(x),
+        :wstdmed005 => x -> w_std_med_infill_fun005(x),
+        :wstdmed01 => x -> w_std_med_infill_fun01(x),
+        :wstdmed015 => x -> w_std_med_infill_fun015(x),
+        :wstdmed02 => x -> w_std_med_infill_fun02(x),
+        :wstdmed025 => x -> w_std_med_infill_fun025(x),
+        :wstdmed03 => x -> w_std_med_infill_fun03(x),
+        :wstdmed035 => x -> w_std_med_infill_fun035(x),
+        :wstdmed04 => x -> w_std_med_infill_fun04(x),
+        :wstdmed045 => x -> w_std_med_infill_fun045(x),
+        :wstdmed05 => x -> w_std_med_infill_fun05(x),
+        :wstdmed055 => x -> w_std_med_infill_fun055(x),
+        :wstdmed06 => x -> w_std_med_infill_fun06(x),
+        :wstdmed065 => x -> w_std_med_infill_fun065(x),
+        :wstdmed07 => x -> w_std_med_infill_fun07(x),
+        :wstdmed075 => x -> w_std_med_infill_fun075(x),
+        :wstdmed08 => x -> w_std_med_infill_fun08(x),
+        :wstdmed085 => x -> w_std_med_infill_fun085(x),
+        :wstdmed09 => x -> w_std_med_infill_fun09(x),
+        :wstdmed095 => x -> w_std_med_infill_fun095(x)
     )
     functions_to_call = Tuple([library[s] for s in infill_funcs])
     infill_obj_fun = function (x)
@@ -163,17 +219,25 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     infill_incomplete = true
     j = 0
     res_bboptim = nothing
-    while infill_incomplete && j <= 50
-        try 
-            res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
-                    FitnessScheme=ParetoFitnessScheme{length(infill_funcs)}(is_minimizing=true),
-                    SearchRange=search_range, ϵ=0.00001,
-                    MaxFuncEvals=infill_iterations,
-                    MaxStepsWithoutProgress=20_000,TraceMode=:silent); 
+    while infill_incomplete && j <= 100
+        try
+            if num_infill_points > 1
+                #Multi-objective optimisation when number of infill points is larger than 1
+                res_bboptim = bboptimize(infill_obj_fun; Method=:borg_moea,
+                        FitnessScheme=ParetoFitnessScheme{length(infill_funcs[1:num_infill_points])}(is_minimizing=true),
+                        SearchRange=search_range, ϵ=0.000001,
+                        MaxFuncEvals=infill_iterations,
+                        MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
+            else
+                res_bboptim = bboptimize(x->infill_obj_fun(x)[1]; 
+                        SearchRange=search_range,
+                        MaxFuncEvals=infill_iterations,
+                        MaxStepsWithoutProgress=infill_iterations,TraceMode=:silent); 
+            end
             infill_incomplete = false
         catch ex
             j += 1 
-            (j >= 50) && rethrow(ex)  #Show error if consistently failing
+            (j >= 100) && rethrow(ex)  #Show error if consistently failing
         end
     end
     
@@ -183,12 +247,13 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     infill_prediction = Array{Float64,1}()
 
     # Take the num_infill_points number of infill points from the cycled list.
-    infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs)), num_infill_points)
+    infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs[1:num_infill_points])), num_infill_points)
     
     for i in infill_obj_funs
-        pf = pareto_frontier(res_bboptim)
-        best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
-        bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
+        # pf = pareto_frontier(res_bboptim)
+        # best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
+        # bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
+        bo1_solution = best_candidate(res_bboptim)
 
         # Add the infill point if it does not exist in the plan or infill_plan
         v = copy(permutedims(bo1_solution'))
@@ -219,6 +284,8 @@ duplicated points.
 """
 function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,infill_plan,infill_type,num_infill_points,infill_obj_fun,infill_funcs,res_bboptim)
     
+    
+    try # Solution to handle the situation when pareto_frontier is not available
     for i = 1:(num_infill_points-size(infill_plan,2)) 
         infill_samples = Array{Float64,2}(undef,1,size(infill_plan,2))
         for i = 1:size(infill_plan,2)
@@ -245,6 +312,8 @@ function infill_add(sm_interpolant,samples,plan,infill_prediction,search_range,i
             infill_plan = [infill_plan v]            
             push!(infill_type,:pareto)
         end       
+    end
+    catch
     end
     
     # Add random points if there aren't enough in the pareto front

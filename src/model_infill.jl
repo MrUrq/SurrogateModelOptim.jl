@@ -34,7 +34,7 @@ function model_infill(search_range::Vector{Tuple{Float64,Float64}},plan::Abstrac
     ((length(sm_interpolant(plan[:,1])) == 1) && (any(infill_funcs.==:std))) && error(":std infill criteria can not be used with one interpolant")
     
     # Extract the requested infill objective functions
-    infill_obj_fun = infill_objective(sm_interpolant,plan,samples,infill_funcs)
+    infill_obj_fun = infill_objective(sm_interpolant,plan,samples,infill_funcs[1:num_infill_points])
 
     # Find the infill optimization points
     infill_plan,infill_type,infill_prediction,res_bboptim,options = 

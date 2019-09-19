@@ -5,29 +5,43 @@ Estimate the Leave-One-Out (LOO) errors using rippas method. Complexity of 𝛰(
 compared to calculating the exact LOO at a cost of 𝛰(4). `A` is the RBF matrix
 and `a` is the weights of the RBF.
 """
-function _rippa(A, a)
+function _rippa(A,a)
     N = size(A, 1)           #Number of Leave-One-Out (LOO) errors
-    e = [[(i == j) ? true : false for i in 1:N] for j in 1:N]
     E = Array{Float64}(undef,N)
 
-    _rippa!(E,e,A,a)
+    _rippa!(E,A,a)
 end
 
+
 """
-    function _rippa!(E,e,A,a)
+    function _rippa!(E,A,a)
 
 Same as _rippa but inplace.
 """
-function _rippa!(E,e,A,a)
+function _rippa!(E,A,a)
     N = size(A, 1)           #Number of Leave-One-Out (LOO) errors
-    A_f = factorize(A)
-
-    for k = 1:N
-        @inbounds xₖ = A_f \ e[k]       #xₖ solution to Ax[k] = e[k]   - Solved N times
-        @inbounds E[k] = a[k] / xₖ[k]   #Estimated error for k-th subset
+    xₖ = A\I
+    @inbounds for k = 1:N
+        E[k] = a[k] / xₖ[k,k]   #Estimated error for k-th subset
     end
 
     return E
+end
+
+"""
+    function _rmse_rippa!(A,a)
+
+Same as _rippa! but calculates the RMSE value directly.
+"""
+function _rmse_rippa!(A,a)
+    N = size(A, 1)           #Number of Leave-One-Out (LOO) errors
+    xₖ = A\I
+    RMSE = 0.0
+    @inbounds for k = 1:N
+        RMSE += (a[k] / xₖ[k,k])^2   #Accumulate square of estimated error for k-th subset
+    end
+    
+    return sqrt(RMSE/N)
 end
 
 """
@@ -52,14 +66,13 @@ function RMSErrorLOO(interp, samples, plan, smooth;
     for i = 1:N
         LOOinds[:,i] = filter(x -> x != i, 1:N) # Get the leave one out sub indices
     end
-    e = [[(i == j) ? true : false for i in 1:N] for j in 1:N]
 
-    RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan, smooth;
+    RMSErrorLOO!(A, ests, LOOinds, interp, samples, plan, smooth;
     cond_max=cond_max, rippa=rippa, rbf_dist_metric = rbf_dist_metric)
 end
 
 
-function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
+function RMSErrorLOO!(A, ests, LOOinds, interp::U,
  samples, plan::T, smooth; cond_max::Float64=1e6, cond_check::Bool=false,
   rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray where U <: AbstractArray
 
@@ -77,11 +90,10 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
 
         #check the conditioning of matrix A for RBFs
         if cond_check && (cond(A) > cond_max)
-            E .= Inf
+            #RMSE is already Inf
         else
             #RBF error estimation based on Rippas algorithm
-            E = _rippa!(E, e, A, itp.w)
-            RMSE = sqrt(mean(E.^2))
+            RMSE = _rmse_rippa!(A,itp.w)
         end
     else
         for i = 1:N
@@ -98,13 +110,12 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
 
             #check the conditioning of matrix A for RBFs
             if cond_check && (cond(A) > cond_max)
-                E .= Inf
+                #RMSE is already Inf
             else
                 #evaluate the interpolation object in the LOO position
                 ests[i] = ScatteredInterpolation.evaluate(itp, plan[:,i])[1]
 
-                E[i] = samples[i] - ests[i]
-                RMSE = sqrt(mean(E.^2))
+                RMSE = sqrt(mean((samples[i] .- ests[i]).^2))
             end
         end
     end
@@ -112,7 +123,7 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp::U,
     return RMSE
 end
 
-function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
+function RMSErrorLOO!(A, ests, LOOinds, interp, samples, plan::T, smooth;
  cond_max::Float64=1e6, cond_check::Bool=false, rippa::Bool=false, rbf_dist_metric = Euclidean()) where T <: AbstractArray
 
     N = length(samples)
@@ -128,11 +139,10 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
 
         #check the conditioning of matrix A for RBFs
         if cond_check && (cond(A) > cond_max)
-            E .= Inf
+            #RMSE is already Inf
         else
             #RBF error estimation based on Rippas algorithm
-            E = _rippa!(E, e, A, itp.w)
-            RMSE = sqrt(mean(E.^2))
+            RMSE = _rmse_rippa!(A,itp.w)
         end
     else
         for i = 1:N
@@ -148,13 +158,12 @@ function RMSErrorLOO!(E, A, ests, e, LOOinds, interp, samples, plan::T, smooth;
             
             #check the conditioning of matrix A for RBFs
             if cond_check && (cond(A) > cond_max)
-                E .= Inf
+                #RMSE is already Inf
             else
                #evaluate the interpolation object in the LOO position
                 ests[i] = ScatteredInterpolation.evaluate(itp, plan[:,i])[1]
 
-                E[i] = samples[i] - ests[i]
-                RMSE = sqrt(mean(E.^2))
+                RMSE = sqrt(mean((samples[i] .- ests[i]).^2))
             end
         end
     end
@@ -396,7 +405,7 @@ end
 
 Objective function for optimization of interpolation kernel function and width.
 """
-function interp_obj(inpt::Vector{Float64}, E, A, ests, e, LOOinds, kerns, samples,
+function interp_obj(inpt::Vector{Float64}, A, ests, LOOinds, kerns, samples,
         plan::Array{Float64,2}; rippa::Bool = false,
         variable_kernel_width::Bool = true, variable_dim_scaling::Bool = true,
         smooth::Union{Bool, Symbol} = false, cond_max::Float64=Inf,  cond_check::Bool=false, rbf_dist_metric = Distances.Euclidean(),
@@ -412,7 +421,7 @@ function interp_obj(inpt::Vector{Float64}, E, A, ests, e, LOOinds, kerns, sample
     
     #Wrapped in try catch-block to catch failure to solve linear eq. system
     E = try
-        E = RMSErrorLOO!(E, A, ests, e, LOOinds, kern, samples, preprocessed_plan, smooth; rippa = rippa,
+        E = RMSErrorLOO!(A, ests, LOOinds, kern, samples, preprocessed_plan, smooth; rippa = rippa,
         cond_max = cond_max, rbf_dist_metric = rbf_dist_metric, cond_check=cond_check)
     catch 
         E = Inf
@@ -431,21 +440,13 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
     @unpack rippa, variable_kernel_width, variable_dim_scaling, rbf_opt_method, 
             min_rbf_width, max_rbf_width, min_scale, max_scale, cond_max,
             rbf_dist_metric, rbf_opt_gens, kerns, rbf_opt_pop,
-            smooth, max_smooth, smooth_user, cond_check = options
+            smooth, max_smooth, smooth_user, cond_check, constrained_seed_gens = options
 
     # Sample order for ScatteredInterpolation
     samples = vec(samples_org)
 
-    # Create the hyperparameter search range based on the input options 
-    sr = construct_search_range(plan, variable_kernel_width,
-                                min_rbf_width, max_rbf_width, variable_dim_scaling,
-                                min_scale, max_scale, smooth, max_smooth)
-
-                        
     # Pre-allocate for inplace functions    
     N = length(samples) #Number of Leave-One-Out (LOO) errors
-    e = [[(i == j) ? true : false for i in 1:N] for j in 1:N]
-    E = Array{Float64}(undef,N)
     A = zeros(Float64, N, N)    #RBF matrix A
     ests = Array{Float64}(undef,N)    #Function estimate based on LOO
     LOOinds = Array{Int}(undef,N - 1, N)
@@ -453,12 +454,75 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
         LOOinds[:,i] = filter(x -> x != i, 1:N) # Get the leave one out sub indices
     end
 
+    # Create the hyperparameter search range based on the input options for a constrained space
+    sr = construct_search_range(plan, false,
+    min_rbf_width, max_rbf_width, variable_dim_scaling,
+    min_scale, max_scale, smooth, max_smooth)
+
+    #Improve the interpolant by first optimising the hyperparameters in a constrained search space
+    if constrained_seed_gens > 0
+        
+        # RBF hyperparameter objective function
+        itp_obj = function (x)
+            interp_obj(x,A,ests,LOOinds,kerns,samples,plan; 
+                    rippa=rippa, variable_kernel_width=false,
+                    variable_dim_scaling=variable_dim_scaling, smooth=smooth,
+                    cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,cond_check=cond_check)
+        end
+
+        # Optimize the interpolant hyperparameters
+        res = bboptimize(itp_obj; 
+                Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
+                TraceMode=:silent, rbf_dist_metric=rbf_dist_metric,
+                TargetFitness = 1e-5, FitnessTolerance = 1e-6,
+                PopulationSize = rbf_opt_pop,
+                MaxStepsWithoutProgress=rbf_opt_gens,
+                MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
+                );
+        #@show best_fitness(res)
+        kern, scaling, smoothing = extract_bboptim_hypers( res.archive_output.best_candidate,
+                                                        plan,kerns,false,
+                                                        variable_dim_scaling,smooth,smooth_user)
+        
+        x0 = res.archive_output.best_candidate
+    else
+        x0 = BlackBoxOptim.Utils.latin_hypercube_sampling(first.(sr),last.(sr),1)
+    end
+
+    # Create the hyperparameter search range based on the input options 
+    sr = construct_search_range(plan, variable_kernel_width,
+                                min_rbf_width, max_rbf_width, variable_dim_scaling,
+                                min_scale, max_scale, smooth, max_smooth)
+    
     # RBF hyperparameter objective function
     itp_obj = function (x)
-        interp_obj(x,E,A,ests,e,LOOinds,kerns,samples,plan; 
+        interp_obj(x,A,ests,LOOinds,kerns,samples,plan; 
                 rippa=rippa, variable_kernel_width=variable_kernel_width,
                 variable_dim_scaling=variable_dim_scaling, smooth=smooth,
                 cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,cond_check=cond_check)
+    end
+
+    #First two values are the kern and kern_width, x0[3:end] is scaling and smooth
+    #kern    kern_width    scaling    smooth
+    if variable_kernel_width
+        x1=[[x0[1] for _ in 1:size(plan,2)]; [x0[2] for _ in 1:size(plan,2)]; x0[3:end]]
+    else
+        x1 = x0
+    end
+    @assert length(x1)==length(sr)
+    
+    #Create population from LHC using the results from the constrained optimisation 
+    #of hyperparameters (if available), else supply random population.
+    nvals=length(sr)
+    if constrained_seed_gens > 0
+        pop_constrained = [x1[i] for i in 1:nvals, _ in 1:1]
+        pop = Array{Float64,2}(undef,nvals,rbf_opt_pop)
+        pop[:,1] = pop_constrained
+        for i in size(pop_constrained,2)+1:size(pop,2)
+            pop[:,i] = BlackBoxOptim.Utils.latin_hypercube_sampling(first.(sr),last.(sr),1) 
+        end
+    else
+        pop = BlackBoxOptim.Utils.latin_hypercube_sampling(first.(sr),last.(sr),rbf_opt_pop) 
     end
 
     # Optimize the interpolant hyperparameters
@@ -469,12 +533,13 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
             PopulationSize = rbf_opt_pop,
             MaxStepsWithoutProgress=rbf_opt_gens,
             MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
+            Population=pop
             );
-        
-    kern, scaling, smooth = extract_bboptim_hypers( res.archive_output.best_candidate,
+    #@show best_fitness(res)
+    kern, scaling, smoothing = extract_bboptim_hypers( res.archive_output.best_candidate,
                                                     plan,kerns,variable_kernel_width,
                                                     variable_dim_scaling,smooth,smooth_user)
-
+    
     # Return the optimized hyperparameters in the correct type
-    return RBFHypers(kern, scaling, smooth), best_fitness(res)
+    return RBFHypers(kern, scaling, smoothing), best_fitness(res)
 end

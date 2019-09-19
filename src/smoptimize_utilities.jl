@@ -31,6 +31,13 @@ function print_f_opt(trace,new_samples,samples,plan)
         end
         
     elseif trace == :verbose
+        println("    ---------------------------------------------------------------")
+        print("    ")
+        for sample in new_samples
+            printstyled(@sprintf("%-15.7g",sample))
+        end
+        println("\t function evaluation\n")
+
         print("    Minimum sample value ")
         printstyled(@sprintf("%.7g",min(new_min,old_min)); color=:light_green, bold=true)
         print("\t(maximum = ")
@@ -87,9 +94,7 @@ function print_iteration(trace,i,iterations)
         printstyled("iteration ";bold=true,color=:light_red)
         printstyled(i,bold=true)
         print(" out of ", iterations)
-        if trace == :verbose
-            println("\n")
-        end
+        print("\n")
     end
 end
 
