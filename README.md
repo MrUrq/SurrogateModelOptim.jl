@@ -36,9 +36,8 @@ julia> smoptimize(rosenbrock_2D, search_range)
 There are many options accessible through the options interface. The target is to minimize
 the function value. The model is created from a Latin Hypercube sampling plan. Several
 Radial Basis Function surrogate models are fitted to the data where the ensemble of
-surrogates is used to predict new design locations. New designs are added in an
-alternating fashion between the predicted minimum and the largest standard deviation of
-the surrogate predictions.
+surrogates is used to predict new design locations. New designs are added which exploits
+the surrogate model as well as explores the design space.
 
 Due to the high cost of creating several surrogates it is highly advisable to create
 the surrogate model in parallel. Start julia in parallel with `> julia -p x` where `x`
