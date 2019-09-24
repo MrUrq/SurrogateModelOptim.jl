@@ -47,11 +47,47 @@ fast_opts() = Options(
     constrained_seed_gens = 0,
     rbf_opt_pop = 20,
     variable_kernel_width = false,
-    #variable_dim_scaling = false,
     num_interpolants = 5,
     smooth = :single_user,
     smooth_user = 1e-7,
     infill_iterations = 2_500
+                        )
+
+"""
+    paper_bench_opts()
+
+The options used for benchmarking in the cited paper.
+Benchmark performed in release v0.4.0.
+"""
+paper_bench_opts() = Options(
+    num_start_samples = 5,
+    trace = :compact,
+    sampling_plan_opt_gens = 1_000,
+    rippa = true,
+    kerns = [ScatteredInterpolation.Gaussian,ScatteredInterpolation.InverseMultiquadratic,ScatteredInterpolation.InverseQuadratic],
+    rbf_opt_gens = 2_500,
+    constrained_seed_gens = 2_500,
+    rbf_opt_pop = 50,
+    rbf_opt_method = :adaptive_de_rand_1_bin_radiuslimited,
+    rbf_dist_metric = Distances.Euclidean(),
+    variable_kernel_width = true,
+    variable_dim_scaling = true,
+    cond_max = 5e12,
+    cond_check = false,
+    max_rbf_width = 1.0,
+    min_rbf_width = 0.0,
+    max_scale = 1.0,
+    min_scale = 0.0,
+    num_interpolants = 10,
+    smooth = :single,
+    max_smooth = 0.005,
+    smooth_user = 0.0,
+    iterations = 95,
+    num_infill_points = 1,
+    parallel_surrogate = true,
+    infill_funcs = [:std,:median,:wstdmed03,:median,:wstdmed06,:median,:wstdmed09,:median],
+    infill_iterations = 25_000,
+    create_final_surrogate = false
                         )
 
 

@@ -5,7 +5,8 @@ package can be used. To run all simply do
 ```julia
 julia> include(joinpath(dirname(pathof(SurrogateModelOptim)), "../examples/test_all.jl"))
 ```
-Below is a brief explanation of the examples. 
+`BlackBoxOptim.jl, PlotlyJS.jl, Distances.jl, LatinHypercubeSampling.jl and Parameters.jl` are needed to run
+all examples. Below is a brief explanation of the examples. 
 
 ## Noisy optimization
 Optimization of noisy functions requires no special treatment except that `smooth` is used

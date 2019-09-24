@@ -1,14 +1,10 @@
 ########## TODO
 
-##  Add benchmark results - once settled for publication
-
-##  Add doctests - currently not working easily
-
-##  Fast, regular and benchmark options - document usage
+##  Add doctests - currently not working easily with outputs
 
 ########## Potential speed improvements
 
-##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation
+##  Add issymmetric && Symmetric to speed up certain cases in ScatteredInterpolation - done?
 
 ##  Options to solve ScatteredInterpolation linear eq system on gpu.
 
@@ -18,7 +14,7 @@
 
 ##  Possibility to save entire optimization state in an easy manner. 
 
-##  Try optimizing widths by optimizing a subset before optimizing the entire range.
+##  Try optimizing widths by optimizing a subset before optimizing the entire range. Multigrid approach
 
 ##  Implement RBFs with sparse support to increase speed of solving linear eq. system.
 
@@ -35,8 +31,8 @@
 
 ##  Add option to use a cheap interpolant to speed up the iterations, e.g. IDW
 
-##  Fast method where relearning only happens every few .. use global results for all following iters, @spawn?
+##  Fast method where relearning only happens every few iterations use global results for all following iters, @spawn?
 
 ##  Parallel function evaluation? @spawn
 
-##  Run hyper optimisation in smaller batches, e.g. @spawn each batch
+##  Run hyper optimisation in smaller batches, for example by clustering with overlap, e.g. @spawn each batch

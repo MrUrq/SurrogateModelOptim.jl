@@ -11,7 +11,8 @@ makedocs(;
                         "surrogate_model.md",
                         "model_infill.md",
                         "options.md",
-                        "examples.md"
+                        "examples.md",
+                        "benchmark.md"
                 ],
         ],
     repo="https://github.com/MrUrq/SurrogateModelOptim.jl/blob/{commit}{path}#L{line}",
