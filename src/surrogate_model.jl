@@ -25,6 +25,7 @@ function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; 
 
     (length(samples) != size(plan,2)) && error("plan and samples do not have the correct sizes")
     
+    @timeit_debug "hypers opt" begin
     #Optimize RBF hypers for the ensamble of interpolants
     if parallel_surrogate
         mres = pmap(  (x)->rbf_hypers_opt(samples, plan, options), 
@@ -32,6 +33,7 @@ function surrogate_model(plan::AbstractArray{T,2}, samples::AbstractArray{T,2}; 
     else
         mres = map(  (x)->rbf_hypers_opt(samples, plan, options), 
                         1:num_interpolants)
+    end
     end
 
     optres = first.(mres)

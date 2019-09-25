@@ -470,6 +470,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
                     cond_max=cond_max,rbf_dist_metric=rbf_dist_metric,cond_check=cond_check)
         end
 
+        @timeit_debug "hyper opt constrained" begin
         # Optimize the interpolant hyperparameters
         res = bboptimize(itp_obj; 
                 Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
@@ -479,6 +480,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
                 MaxStepsWithoutProgress=rbf_opt_gens,
                 MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
                 );
+        end
         #@show best_fitness(res)
         kern, scaling, smoothing = extract_bboptim_hypers( res.archive_output.best_candidate,
                                                         plan,kerns,false,
@@ -525,6 +527,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
         pop = BlackBoxOptim.Utils.latin_hypercube_sampling(first.(sr),last.(sr),rbf_opt_pop) 
     end
 
+    @timeit_debug "hyper opt full" begin
     # Optimize the interpolant hyperparameters
     res = bboptimize(itp_obj; 
             Method=rbf_opt_method,SearchRange=sr, MaxFuncEvals=rbf_opt_gens,
@@ -535,6 +538,7 @@ function rbf_hypers_opt(samples_org::Array{Float64,2}, plan::Array{Float64,2}, o
             MaxNumStepsWithoutFuncEvals=rbf_opt_gens,
             Population=pop
             );
+    end
     #@show best_fitness(res)
     kern, scaling, smoothing = extract_bboptim_hypers( res.archive_output.best_candidate,
                                                     plan,kerns,variable_kernel_width,

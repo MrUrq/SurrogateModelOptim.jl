@@ -37,8 +37,10 @@ function model_infill(search_range::Vector{Tuple{Float64,Float64}},plan::Abstrac
     infill_obj_fun = infill_objective(sm_interpolant,plan,samples,infill_funcs[1:num_infill_points])
 
     # Find the infill optimization points
+    @timeit_debug "infill opt" begin
     infill_plan,infill_type,infill_prediction,res_bboptim,options = 
         infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_fun,infill_funcs,plan,sm_interpolant,options)
+    end
         
     # Add additional points to fill up the desired number of infill points if required
     infill_plan,infill_type,infill_prediction = 

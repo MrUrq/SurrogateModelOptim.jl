@@ -1,5 +1,7 @@
 module SurrogateModelOptim
 
+@doc read(joinpath(dirname(@__DIR__), "README.md"), String) SurrogateModelOptim
+
 export  smoptimize,
         surrogate_model,
         model_infill,
@@ -22,6 +24,7 @@ using Distributed
 using StaticArrays
 import NearestNeighbors: KDTree, knn
 using Printf
+using TimerOutputs
 
 include("types.jl")
 include("LHC_sampling_plan.jl")

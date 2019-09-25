@@ -282,4 +282,49 @@
                         infill_funcs=[:min,:mean,:median,:std,:dist]
                             ));
     @test typeof(result) == SurrogateModelOptim.SurrogateResult
+
+    redirect_stdout((()->
+    # Test that verbosity  works
+    result = smoptimize(rosenbrock_2D, [(-5.0,5.0),(-5.0,5.0)];
+                        options=SurrogateModelOptim.Options(
+                        iterations=6,
+                        num_interpolants=2,
+                        num_start_samples=5,
+                        rbf_opt_gens=5,
+                        constrained_seed_gens=5,
+                        infill_iterations=5,
+                        num_infill_points=1,
+                        trace=:compact,
+                        rippa = true,
+                        variable_kernel_width = true,
+                        variable_dim_scaling = false,
+                        parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
+                        infill_funcs=[:min,:mean,:median,:std,:dist]
+                            ));
+    ),open("/dev/null", "w"));
+
+    @test typeof(result) == SurrogateModelOptim.SurrogateResult
+
+    redirect_stdout((()->
+    # Test that verbosity  works
+    result = smoptimize(rosenbrock_2D, [(-5.0,5.0),(-5.0,5.0)];
+                        options=SurrogateModelOptim.Options(
+                        iterations=6,
+                        num_interpolants=2,
+                        num_start_samples=5,
+                        rbf_opt_gens=5,
+                        constrained_seed_gens=5,
+                        infill_iterations=5,
+                        num_infill_points=1,
+                        trace=:verbose,
+                        rippa = true,
+                        variable_kernel_width = true,
+                        variable_dim_scaling = false,
+                        parallel_surrogate=false,
+                        sampling_plan_opt_gens = 5,
+                        infill_funcs=[:min,:mean,:median,:std,:dist]
+                            ));
+    ),open("/dev/null", "w"));
+    @test typeof(result) == SurrogateModelOptim.SurrogateResult
 end
