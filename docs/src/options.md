@@ -1,4 +1,7 @@
 # Options
+!!! note
+    The default options may be updated between minor versions for performance reasons.
+
 The available options are listed below. The performance using the default options has been
 good for several test functions, with and without noise. Make sure to set
 `num_interpolants` to a value which is a multiple of the number of processes used for the
