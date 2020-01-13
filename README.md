@@ -14,6 +14,7 @@
 
 *SurrogateModelOptim* is a Julia package for the optimisation of expensive functions. 
 The surrogate model is based on an ensemble of Radial Basis Function interpolants with adaptive axis scaling.
+For more details, see our [paper](https://doi.org/10.1016/j.asoc.2019.106050).
 
 ## Installation
 
@@ -67,4 +68,14 @@ julia> result = smoptimize(rosenbrock_2D, search_range;
 [docs-stable-url]: https://MrUrq.github.io/SurrogateModelOptim.jl/stable
 
 ### Citation
-TBD
+```
+@article{urquhart_surrogate-based_2020,
+	title = {Surrogate-based optimisation using adaptively scaled radial basis functions},
+	volume = {88},
+	issn = {1568-4946},
+	doi = {10.1016/j.asoc.2019.106050},
+	journal = {Applied Soft Computing},
+	author = {Urquhart, Magnus and Ljungskog, Emil and Sebben, Simone},
+	year = {2020},
+}
+```

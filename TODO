@@ -35,4 +35,4 @@
 
 ##  Parallel function evaluation? @spawn
 
-##  Run hyper optimisation in smaller batches, for example by clustering with overlap, e.g. @spawn each batch
+##  Run hyper optimisation in smaller batches, for example by clustering with overlap, e.g. @spawn each batch eg (A Gentle Introduction to Dropout for Regularizing Deep Neural Networks)
