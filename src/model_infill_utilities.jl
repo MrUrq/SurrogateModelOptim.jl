@@ -250,10 +250,13 @@ function infill_opt(search_range,infill_iterations,num_infill_points,infill_obj_
     infill_obj_funs = Iterators.take(Base.Iterators.cycle(1:length(infill_funcs[1:num_infill_points])), num_infill_points)
     
     for i in infill_obj_funs
-        # pf = pareto_frontier(res_bboptim)
-        # best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
-        # bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
-        bo1_solution = best_candidate(res_bboptim)
+        if length(infill_obj_funs) > 1
+            pf = pareto_frontier(res_bboptim)
+            best_obj1, idx_obj1 = findmin(map(elm -> fitness(elm)[i], pf))
+            bo1_solution = BlackBoxOptim.params(pf[idx_obj1]) # get the solution candidate itself... 
+        else
+            bo1_solution = best_candidate(res_bboptim)
+        end
 
         # Add the infill point if it does not exist in the plan or infill_plan
         v = copy(permutedims(bo1_solution'))
