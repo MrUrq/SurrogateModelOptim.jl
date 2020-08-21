@@ -114,10 +114,9 @@ function RMSErrorLOO!(A, ests, LOOinds, interp::U,
             else
                 #evaluate the interpolation object in the LOO position
                 ests[i] = ScatteredInterpolation.evaluate(itp, plan[:,i])[1]
-
-                RMSE = sqrt(mean((samples[i] .- ests[i]).^2))
             end
         end
+        RMSE = sqrt(mean((samples .- ests).^2))
     end
 
     return RMSE
@@ -160,12 +159,11 @@ function RMSErrorLOO!(A, ests, LOOinds, interp, samples, plan::T, smooth;
             if cond_check && (cond(A) > cond_max)
                 #RMSE is already Inf
             else
-               #evaluate the interpolation object in the LOO position
+                #evaluate the interpolation object in the LOO position
                 ests[i] = ScatteredInterpolation.evaluate(itp, plan[:,i])[1]
-
-                RMSE = sqrt(mean((samples[i] .- ests[i]).^2))
             end
         end
+        RMSE = sqrt(mean((samples .- ests).^2))
     end
 
     return RMSE    
@@ -195,13 +193,28 @@ end
 
 """
     function scale(old_x::Array{T,2},direction::Int,new_min,new_max;
-    old_min=minimum(old_x,direction)::Array{T,2},old_max=maximum(old_x,direction)::Array{T,2}) where T <: Real 
+    old_min=minimum(old_x,direction),old_max=maximum(old_x,direction)) where T <: Real 
 
-Scale a 2D matrix to match a new range along the specified `direction`.
+Scale a 2D matrix to match a new range along the specified `direction`. Specify
+the old extrema as scalars to use the same factor per row/column, or as a 
+vector to scale each row/column by a unique value.
 """
-function scale(old_x::Array{T,2},direction::Int,new_min,new_max;old_min=minimum(old_x,dims=direction)::Array{T,2},old_max=maximum(old_x,dims=direction)::Array{T,2}) where T <: Real 
+function scale(old_x::Array{T,2},direction::Int,new_min,new_max;old_min=minimum(old_x,dims=direction),old_max=maximum(old_x,dims=direction)) where T <: Real 
 
-    newX = mapslices(x -> scale(x,new_min,new_max;old_min=old_min,old_max=old_max), old_x, dims=direction)
+    if length(old_min) == length(old_max) == 1
+        newX = mapslices(x->scale(x,new_min,new_max;old_min=old_min,old_max=old_max), old_x, dims=direction)
+    else
+        old_min_itr = (x for x in old_min)
+        old_max_itr = (x for x in old_max)
+
+        mapfun = function (x)
+            (omin, old_min_itr) = Iterators.peel(old_min_itr)
+            (omax, old_max_itr) = Iterators.peel(old_max_itr)
+            scale(x,new_min,new_max;old_min=omin,old_max=omax)
+        end
+        newX = mapslices(mapfun, old_x, dims=direction)
+    end
+    return newX
 end
 
 scale(x::Missing,min_val,max_val;old_min,old_max) = missing
