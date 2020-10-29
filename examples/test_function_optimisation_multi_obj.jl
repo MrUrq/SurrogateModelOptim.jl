@@ -33,7 +33,8 @@ function multi_objective_smoptimize(f,search_range,options)
     lhc_plan = SurrogateModelOptim.scaled_LHC_sampling_plan(search_range,num_start_samples,10000)
        
     #Evaluate sampling plan
-    lhc_samples = [SurrogateModelOptim.f_opt_eval(x->f(x)[i],lhc_plan) for i in 1:n_funcs]
+    inter = SurrogateModelOptim.f_opt_eval(f,lhc_plan)
+    lhc_samples = [getindex.(inter,i) for i in 1:n_funcs]
 
     #Initialize variables to be returned
     sm_interpolant = [nothing for _ in 1:n_funcs]
@@ -78,10 +79,12 @@ function multi_objective_smoptimize(f,search_range,options)
         infill_plan_new = [permutedims(p_med.inner.params') permutedims(p_std.inner.params')]
             
         #Evaluate the new infill points
-        infill_sample_new = [SurrogateModelOptim.f_opt_eval(x->f(x)[j],infill_plan_new,samples_all[j];trace=:silent) for j in 1:n_funcs]
+        inter2 = SurrogateModelOptim.f_opt_eval(f,infill_plan_new;trace=:silent)
+        infill_sample_new = [getindex.(inter2,j) for j in 1:n_funcs]
 
         println("\nEvaluating functions------------")
-        [str = printstyled(@sprintf("Objective value: %-15.7g \n",minimum(infill_sample_new[i]))) for i in 1:n_funcs]
+        printstyled(@sprintf("Objective value median: %-17.7g %-17.7g \n",infill_sample_new[1][1],infill_sample_new[2][1]))
+        printstyled(@sprintf("Objective value std: %-17.7g %-17.7g \n",infill_sample_new[1][2],infill_sample_new[2][2]))
         println("--------------------------------")
 
         #Add infill points
