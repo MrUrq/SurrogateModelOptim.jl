@@ -1,7 +1,7 @@
 name = "SurrogateModelOptim"
 uuid = "dc3f66f6-feed-11e8-2006-85573fddfdbc"
 authors = ["Magnus Urquhart <magnus.urquhart@gmail.com>"]
-version = "0.5.0"
+version = "0.5.1"
 
 [deps]
 BlackBoxOptim = "a134a8b2-14d6-55f6-9291-3336d3ab0209"
