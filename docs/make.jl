@@ -24,8 +24,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/MrUrq/SurrogateModelOptim.jl",
-    target="build",
-    deps=nothing,
-    make=nothing,
+    repo="github.com/MrUrq/SurrogateModelOptim.jl"
 )
